@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Source_Serif_4, DM_Mono } from "next/font/google";
 import "./globals.css";
+import LeftNav from "@/components/LeftNav";
+import { RecentlyVisited } from "@/components/RecentlyVisited";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -32,7 +34,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${sourceSerif.variable} ${dmMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <div className="app-shell">
+          <LeftNav />
+          <div className="app-shell-middle">{children}</div>
+          <RecentlyVisited />
+        </div>
+      </body>
     </html>
   );
 }

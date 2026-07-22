@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { SEARCH_QUERY } from '@/lib/queries';
 import type { SearchResult } from '@/lib/types';
 
-export default function SearchBox() {
+export default function SearchBox({ compact = false }: { compact?: boolean }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,16 +41,16 @@ export default function SearchBox() {
   const visibleResults = trimmedQuery ? results : [];
 
   return (
-    <div style={{ position: 'relative', maxWidth: 560 }}>
+    <div style={{ position: 'relative', maxWidth: compact ? '100%' : 560 }}>
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search topics — e.g. hyperkalemia, ACLS, mitral regurgitation…"
+        placeholder={compact ? 'Search topics…' : 'Search topics — e.g. hyperkalemia, ACLS, mitral regurgitation…'}
         style={{
           width: '100%',
-          padding: '12px 16px',
-          fontSize: '1rem',
+          padding: compact ? '9px 12px' : '12px 16px',
+          fontSize: compact ? '0.85rem' : '1rem',
           fontFamily: 'var(--font-source-serif), serif',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius)',
@@ -59,7 +59,7 @@ export default function SearchBox() {
         }}
       />
       {loading && (
-        <div className="mono" style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+        <div className="mono" style={{ marginTop: 6, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
           Searching…
         </div>
       )}
@@ -68,20 +68,25 @@ export default function SearchBox() {
           className="card"
           style={{
             listStyle: 'none',
-            margin: '8px 0 0 0',
+            margin: 0,
             padding: 0,
-            maxHeight: 420,
+            maxHeight: compact ? 360 : 420,
             overflowY: 'auto',
+            ...(compact
+              ? { position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 20 }
+              : { marginTop: 8 }),
           }}
         >
           {visibleResults.map(({ topic, score }) => (
             <li key={topic.topicId} style={{ borderBottom: '1px solid var(--border)' }}>
               <Link
                 href={`/topics/${encodeURIComponent(topic.topicId)}`}
-                style={{ display: 'block', padding: '10px 14px' }}
+                style={{ display: 'block', padding: compact ? '8px 12px' : '10px 14px' }}
               >
-                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{topic.title}</div>
-                <div className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <div style={{ fontWeight: 600, fontSize: compact ? '0.85rem' : '1rem', color: 'var(--text-primary)' }}>
+                  {topic.title}
+                </div>
+                <div className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   {topic.specialty} · relevance {score.toFixed(2)}
                 </div>
               </Link>

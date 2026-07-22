@@ -1,10 +1,10 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { graphqlFetch } from '@/lib/graphqlClient';
 import { TOPIC_DETAIL_QUERY } from '@/lib/queries';
 import type { Topic } from '@/lib/types';
 import { SectionCard, BulletList } from '@/components/SectionCard';
 import { ContentBlocks } from '@/components/ContentBlocks';
+import { RecordVisit } from '@/components/RecordVisit';
 
 interface TopicPageProps {
   params: Promise<{ topicId: string }>;
@@ -320,30 +320,15 @@ export default async function TopicPage({ params }: TopicPageProps) {
   }
 
   return (
-    <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 80px', display: 'flex', gap: 40 }}>
-      <aside style={{ width: 220, flexShrink: 0 }}>
-        <div style={{ position: 'sticky', top: 24 }}>
-          <Link href="/" className="mono" style={{ fontSize: '0.8rem' }}>
-            ← Knowledge Hub
-          </Link>
-          <nav style={{ marginTop: 20 }}>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {sections.map((s) => (
-                <li key={s.id} style={{ marginBottom: 8 }}>
-                  <a
-                    href={`#${s.id}`}
-                    style={{ fontSize: '0.85rem', color: `var(${s.colorVar})` }}
-                  >
-                    {s.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </aside>
+    <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 24px 80px' }}>
+      <RecordVisit
+        topicId={topic.topicId}
+        title={topic.title}
+        specialty={topic.specialty}
+        chapter={topic.chapter}
+      />
 
-      <article style={{ flex: 1, minWidth: 0 }}>
+      <article>
         <header style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
             <span className="chip">{topic.specialty}</span>
@@ -367,6 +352,35 @@ export default async function TopicPage({ params }: TopicPageProps) {
             </p>
           ))}
         </header>
+
+        {sections.length > 1 && (
+          <nav
+            aria-label="Jump to section"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 8,
+              marginBottom: 24,
+              position: 'sticky',
+              top: 0,
+              background: 'var(--bg-base)',
+              paddingTop: 8,
+              paddingBottom: 8,
+              zIndex: 5,
+            }}
+          >
+            {sections.map((s) => (
+              <a
+                key={s.id}
+                href={`#${s.id}`}
+                className="chip"
+                style={{ color: `var(${s.colorVar})`, borderColor: `var(${s.colorVar})` }}
+              >
+                {s.title}
+              </a>
+            ))}
+          </nav>
+        )}
 
         {sections.map((s) => (
           <SectionCard key={s.id} id={s.id} title={s.title} colorVar={s.colorVar}>
