@@ -1,34 +1,66 @@
-/* "Premium Clinical Soft" theme, ported from doctorshero-rx's
-   lib/widgets/knowledge_hub/hub_theme.dart — same palette and section
-   color-coding as the Flutter Knowledge Hub. This app renders a single,
-   deliberate light theme (parchment/serif), so no dark-mode override. */
+/* Product Sans — self-hosted, mirrors doctorshero-frontend/public/fonts so
+   headings match the main doctor portal exactly. */
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+}
+
+/* DoctorsHero theme — matches doctorshero-frontend's real brand colors
+   (#FE3001 primary / #28629C secondary, confirmed from its own globals.css
+   and SideBar.jsx active-state styling) rather than this app's original
+   standalone "Premium Clinical Soft" parchment/teal/terracotta/gold theme,
+   since Knowledge Hub is now reached from inside the doctor portal and
+   should read as part of the same product, not a separate boutique app. */
 :root {
-  --bg-base: #faf9f6;
+  --bg-base: #f7f7f8;
   --bg-surface: #ffffff;
-  --bg-surface-hover: #f3f1ed;
-  --accent-primary: #4a7c6f;
-  --accent-secondary: #b85c4a;
+  --bg-surface-hover: #f5f8fd;
+  --accent-primary: #fe3001;
+  --accent-primary-hover: #e52a00;
+  --accent-secondary: #28629c;
   --accent-highlight: #d4a853;
   --text-primary: #2d2d2d;
   --text-secondary: #6b6b6b;
   --text-muted: #9a9a9a;
-  --border: #e8e5df;
-  --radius: 10px;
-  --radius-chip: 5px;
+  --border: #f3f4f6;
+  --radius: 12px;
+  --radius-chip: 8px;
 
-  /* Section color-coding, ported from HubTheme.sectionColor */
-  --section-background: #4a7c6f;
-  --section-presentation: #5b7f9e;
-  --section-diagnosis: #5e6fa3;
-  --section-management: #b85c4a;
+  /* Section color-coding — kept as distinct hues (still useful for quickly
+     telling sections apart) but re-tuned so none of them fight with the
+     #FE3001/#28629C brand pair. */
+  --section-background: #28629c;
+  --section-presentation: #3d7ab8;
+  --section-diagnosis: #5568c9;
+  --section-management: #fe3001;
   --section-drugs: #8e5a7c;
   --section-special-populations: #7c6a9c;
   --section-monitoring: #b3872f;
-  --section-complications: #a34a4a;
-  --section-education: #7a8450;
-  --section-medicines: #3e7e8c;
+  --section-complications: #d64545;
+  --section-education: #4a8f5c;
+  --section-medicines: #28629c;
   --section-see-also: #6e7b8c;
-  --section-recommendations: #b08a3e;
+  --section-recommendations: #d4a853;
   --section-references: #857f73;
 }
 
@@ -48,7 +80,7 @@ body {
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-source-serif), serif;
+  font-family: var(--font-inter), "Inter", sans-serif;
   line-height: 1.55;
   overflow: hidden;
 }
@@ -108,8 +140,8 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-playfair), serif;
-  font-weight: 600;
+  font-family: "Product Sans", var(--font-inter), sans-serif;
+  font-weight: 700;
   line-height: 1.25;
   margin: 0 0 0.5em 0;
 }
@@ -120,6 +152,7 @@ a {
 }
 
 a:hover {
+  color: var(--accent-primary-hover);
   text-decoration: underline;
 }
 
@@ -132,9 +165,18 @@ a:hover {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* Floating/overlay panels (search dropdown, popovers) — matches
+   doctorshero-frontend's shadow-xl + border-gray-100 convention. */
+.card-floating {
+  background: var(--bg-surface);
+  border: 1px solid #f3f4f6;
+  border-radius: var(--radius);
   box-shadow:
-    0 3px 12px rgba(0, 0, 0, 0.05),
-    0 1px 3px rgba(0, 0, 0, 0.02);
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 .chip {

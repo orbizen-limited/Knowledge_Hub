@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Source_Serif_4, DM_Mono } from "next/font/google";
+import { Inter, DM_Mono } from "next/font/google";
 import "./globals.css";
 import LeftNav from "@/components/LeftNav";
 import { RecentlyVisited } from "@/components/RecentlyVisited";
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+// Body font — matches doctorshero-frontend's brand typography (see
+// doctorshero-frontend/app/layout.tsx). Headings use "Product Sans" instead
+// (self-hosted, @font-face in globals.css) — same pairing as the main portal.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin"],
-  weight: ["400", "600"],
+  weight: ["400", "500", "700"],
 });
 
 const dmMono = DM_Mono({
@@ -33,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${sourceSerif.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${dmMono.variable}`}>
       <body>
         <div className="app-shell">
           <LeftNav />

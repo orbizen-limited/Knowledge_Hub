@@ -51,7 +51,7 @@ export default function SearchBox({ compact = false }: { compact?: boolean }) {
           width: '100%',
           padding: compact ? '9px 12px' : '12px 16px',
           fontSize: compact ? '0.85rem' : '1rem',
-          fontFamily: 'var(--font-source-serif), serif',
+          fontFamily: 'var(--font-inter), sans-serif',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius)',
           background: 'var(--bg-surface)',
@@ -65,7 +65,7 @@ export default function SearchBox({ compact = false }: { compact?: boolean }) {
       )}
       {visibleResults.length > 0 && (
         <ul
-          className="card"
+          className={compact ? 'card-floating' : 'card'}
           style={{
             listStyle: 'none',
             margin: 0,

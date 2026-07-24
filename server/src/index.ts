@@ -63,7 +63,7 @@ async function main() {
 
   app.use(errorHandler);
 
-  app.listen(env.port, () => {
+  app.listen(env.port, '127.0.0.1', () => {
     logger.info(`Knowledge Hub API listening on http://127.0.0.1:${env.port}/graphql`);
   });
 }

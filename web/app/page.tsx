@@ -2,7 +2,17 @@ import { graphqlFetch } from '@/lib/graphqlClient';
 import { CHAPTERS_QUERY } from '@/lib/queries';
 import type { ChapterSummary } from '@/lib/types';
 
-export const revalidate = 300;
+// Was `revalidate = 300` (ISR) — but the per-request CSP nonce (proxy.ts)
+// and ISR are fundamentally incompatible: an ISR-cached response bakes in
+// whatever nonce was live at generation time, while every subsequent request
+// gets a *different* fresh nonce in its CSP header. Browser rejects every
+// inline script whose nonce doesn't match the header, so hydration silently
+// fails on any cache hit — the page renders but nothing is clickable, and
+// since this is the entry route, it takes the whole app's client-side router
+// down with it. Rendering dynamically keeps the nonce consistent per request;
+// this page is cheap enough (one GraphQL call, already LRU-cached server-side)
+// that losing ISR here isn't a real cost.
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const { chapters } = await graphqlFetch<{ chapters: ChapterSummary[] }>(CHAPTERS_QUERY);

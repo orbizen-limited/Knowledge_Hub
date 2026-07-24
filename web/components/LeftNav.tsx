@@ -13,7 +13,7 @@ export default async function LeftNav() {
     <div className="app-shell-left">
       <div style={{ padding: '18px 16px 12px', position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 10 }}>
         <Link href="/" style={{ display: 'block', marginBottom: 12, color: 'var(--text-primary)' }}>
-          <span style={{ fontFamily: 'var(--font-playfair), serif', fontWeight: 600, fontSize: '1.05rem' }}>
+          <span style={{ fontFamily: '"Product Sans", var(--font-inter), sans-serif', fontWeight: 700, fontSize: '1.05rem' }}>
             Knowledge Hub
           </span>
         </Link>

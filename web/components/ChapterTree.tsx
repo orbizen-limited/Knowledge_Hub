@@ -96,7 +96,7 @@ export function ChapterTree({ chapters }: { chapters: ChapterSummary[] }) {
                   border: 'none',
                   cursor: 'pointer',
                   borderRadius: 6,
-                  fontFamily: 'var(--font-source-serif), serif',
+                  fontFamily: 'var(--font-inter), sans-serif',
                   fontSize: '0.88rem',
                   color: 'var(--text-primary)',
                   textAlign: 'left',
