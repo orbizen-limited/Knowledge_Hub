@@ -110,12 +110,18 @@ def verify_jwt(token: str, expected_iss: str, expected_aud: str) -> dict:
     """Verify an inbound JWT. Mirrors ServiceSignature::verifyJwt + the replay
     guard from VerifyInternalRequest. Raises ValueError on any failure."""
     try:
+        # PyJWT 2.x auto-validates the `aud` claim internally whenever the
+        # token carries one — and raises InvalidAudienceError before this
+        # function's own manual `iss`/`aud` checks below ever run — unless
+        # an `audience=` is passed to decode() or aud-verification is
+        # disabled here. We do the manual checks ourselves right after, so
+        # disable PyJWT's built-in one to avoid it firing first.
         claims = jwt.decode(
             token,
             jwt_secret(),
             algorithms=["HS256"],
             leeway=clock_skew(),
-            options={"require": ["exp", "iat", "nbf"]},
+            options={"require": ["exp", "iat", "nbf"], "verify_aud": False},
         )
     except jwt.PyJWTError as exc:  # signature / exp / nbf / malformed
         raise ValueError(f"jwt decode failed: {exc}") from exc
