@@ -6,6 +6,16 @@ import { SectionCard, BulletList } from '@/components/SectionCard';
 import { ContentBlocks } from '@/components/ContentBlocks';
 import { RecordVisit } from '@/components/RecordVisit';
 
+// Per-request CSP nonce (proxy.ts) is fundamentally incompatible with static
+// generation/ISR: a cached response bakes in whatever nonce was live when it
+// was generated, while every subsequent request gets a fresh nonce in its CSP
+// header. The mismatch silently blocks all inline scripts, killing hydration
+// on this page — the exact same bug already fixed once on app/page.tsx (see
+// that file's comment). Topic pages are what users land on from every click
+// or search result, so losing this here breaks the whole app's interactivity
+// the moment someone opens a topic, not just this one route.
+export const dynamic = 'force-dynamic';
+
 interface TopicPageProps {
   params: Promise<{ topicId: string }>;
 }
