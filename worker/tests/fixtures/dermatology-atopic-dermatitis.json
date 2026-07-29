@@ -1,0 +1,1290 @@
+{
+  "topicId": "dermatology.atopic_dermatitis",
+  "title": "Atopic Dermatitis",
+  "specialty": "General Dermatology",
+  "chapter": "Dermatology",
+  "category": "Dermatology",
+  "subcategory": "Eczematous Dermatoses",
+  "tier": 0,
+  "contentVersion": 2,
+  "reviewStatus": 0,
+  "referenceStyle": "vancouver",
+  "lastUpdated": "2026-07-26T22:50:00+06:00",
+  "agentGenerated": false,
+  "keywords": [
+    "atopic dermatitis",
+    "atopic eczema",
+    "Hanifin-Rajka",
+    "UK Working Party",
+    "EASI",
+    "IGA",
+    "emollient",
+    "topical corticosteroid",
+    "tacrolimus",
+    "pimecrolimus",
+    "crisaborole",
+    "dupilumab",
+    "upadacitinib",
+    "abrocitinib",
+    "baricitinib",
+    "phototherapy",
+    "Bangladesh"
+  ],
+  "careSettings": [
+    "outpatient",
+    "inpatient",
+    "resource_limited",
+    "paediatric"
+  ],
+  "relatedTopicIds": [
+    "dermatology.scabies_its_management",
+    "dermatology.contact_dermatitis",
+    "dermatology.impetigo_ecthyma"
+  ],
+  "relatedMedicineGenericKeys": [
+    "abrocitinib",
+    "baricitinib",
+    "betamethasone",
+    "crisaborole",
+    "dupilumab",
+    "hydrocortisone",
+    "mometasone",
+    "tacrolimus",
+    "upadacitinib"
+  ],
+  "curriculumRefs": [
+    "MBBS Dermatology — eczematous disorders",
+    "MRCP/FCPS Dermatology — atopic dermatitis stepwise therapy",
+    "EAACI/EuroGuiDerm — atopic eczema guidance"
+  ],
+  "reviewLog": [
+    "2026-07-26: Tier-1 v4 authoring completed; pending clinician check."
+  ],
+  "bottomLine": "Diagnose AD clinically with Hanifin–Rajka and/or UKWP criteria and stage severity with IGA plus EASI before escalating care [1-6,16,17]. Continuous emollients plus site-matched TCS, with TCI (and crisaborole when available) for sensitive sites and proactive maintenance, control most mild-to-moderate disease [7,11,12,20-23]. Phototherapy bridges widespread topical-refractory AD [8,11]. For moderate-to-severe refractory disease, dupilumab and oral JAK inhibitors (upadacitinib, abrocitinib, baricitinib) have strong phase 3 evidence but need infection and monitoring stewardship [10,24-29]. Avoid empiric multipfood diets; treat infection including eczema herpeticum as emergencies; adapt regimens to pregnancy, paediatrics, elderly patients and Bangladesh resource limits [11,14,30].",
+  "references": [
+    {
+      "refId": 1,
+      "citation": "Hanifin JM, Rajka G. Diagnostic features of atopic dermatitis. Acta Derm Venereol Suppl (Stockh). 1980;92:44-47.",
+      "url": "https://doi.org/10.2340/00015555924447"
+    },
+    {
+      "refId": 2,
+      "citation": "Williams HC, Burney PG, Hay RJ, et al. The U.K. Working Party's Diagnostic Criteria for Atopic Dermatitis. I. Derivation of a minimum set of discriminators for atopic dermatitis. Br J Dermatol. 1994;131:383-396.",
+      "url": "https://doi.org/10.1111/j.1365-2133.1994.tb08530.x"
+    },
+    {
+      "refId": 3,
+      "citation": "Williams HC, Burney PG, Strachan D, Hay RJ. The U.K. Working Party's Diagnostic Criteria for Atopic Dermatitis. II. Observer variation of clinical diagnosis and signs of atopic dermatitis. Br J Dermatol. 1994;131:397-405.",
+      "url": "https://doi.org/10.1111/j.1365-2133.1994.tb08531.x"
+    },
+    {
+      "refId": 4,
+      "citation": "Williams HC, Burney PG, Pembroke AC, Hay RJ. The U.K. Working Party's Diagnostic Criteria for Atopic Dermatitis. III. Independent hospital validation. Br J Dermatol. 1994;131:406-416.",
+      "url": "https://doi.org/10.1111/j.1365-2133.1994.tb08532.x"
+    },
+    {
+      "refId": 5,
+      "citation": "Williams HC, Burney PG, Pembroke AC, Hay RJ. Validation of the U.K. diagnostic criteria for atopic dermatitis in a population setting. Br J Dermatol. 1996;135:12-17.",
+      "url": "https://doi.org/10.1111/j.1365-2133.1996.tb03599.x"
+    },
+    {
+      "refId": 6,
+      "citation": "Eichenfield LF, Tom WL, Chamlin SL, et al. Guidelines of care for the management of atopic dermatitis: section 1. Diagnosis and assessment of atopic dermatitis. J Am Acad Dermatol. 2014;70:338-351.",
+      "url": "https://doi.org/10.1016/j.jaad.2013.10.010"
+    },
+    {
+      "refId": 7,
+      "citation": "Eichenfield LF, Tom WL, Berger TG, et al. Guidelines of care for the management of atopic dermatitis: section 2. Management and treatment of atopic dermatitis with topical therapies. J Am Acad Dermatol. 2014;71:116-132.",
+      "url": "https://doi.org/10.1016/j.jaad.2014.03.030"
+    },
+    {
+      "refId": 8,
+      "citation": "Sidbury R, Davis DM, Cohen DE, et al. Guidelines of care for the management of atopic dermatitis: section 3. Management and treatment with phototherapy and systemic agents. J Am Acad Dermatol. 2014;71:327-349.",
+      "url": "https://doi.org/10.1016/j.jaad.2014.08.038"
+    },
+    {
+      "refId": 9,
+      "citation": "Wollenberg A, Barbarot S, Bieber T, et al. Consensus-based European guidelines for treatment of atopic eczema (atopic dermatitis) in adults and children: part I. J Eur Acad Dermatol Venereol. 2018;32:657-682.",
+      "url": "https://doi.org/10.1111/jdv.14891"
+    },
+    {
+      "refId": 10,
+      "citation": "Wollenberg A, Kinberger M, Arents B, et al. European guideline (EuroGuiDerm) on atopic eczema: part I – systemic therapy. J Eur Acad Dermatol Venereol. 2022;36:1409-1431.",
+      "url": "https://doi.org/10.1111/jdv.18345"
+    },
+    {
+      "refId": 11,
+      "citation": "Wollenberg A, Kinberger M, Arents B, et al. European guideline (EuroGuiDerm) on atopic eczema – part II: non-systemic treatments and treatment recommendations for special AE patient populations. J Eur Acad Dermatol Venereol. 2022;36:2127-2157.",
+      "url": "https://doi.org/10.1111/jdv.18429"
+    },
+    {
+      "refId": 12,
+      "citation": "Sidbury R, Alikhan A, Bieber T, et al. Guidelines of care for the management of atopic dermatitis in adults with topical therapies. J Am Acad Dermatol. 2023;89:e1-e20.",
+      "url": "https://doi.org/10.1016/j.jaad.2022.12.029"
+    },
+    {
+      "refId": 13,
+      "citation": "Weidinger S, Novak N. Atopic dermatitis. Lancet. 2016;387:1109-1122.",
+      "url": "https://doi.org/10.1016/S0140-6736(15)00149-X"
+    },
+    {
+      "refId": 14,
+      "citation": "Langan SM, Irvine AD, Weidinger S. Atopic dermatitis. Lancet. 2020;396:345-360.",
+      "url": "https://doi.org/10.1016/s0140-6736(20)31286-1"
+    },
+    {
+      "refId": 15,
+      "citation": "Weidinger S, Beck LA, Bieber T, Kabashima K, Irvine AD. Atopic dermatitis. Nat Rev Dis Primers. 2018;4:1.",
+      "url": "https://doi.org/10.1038/s41572-018-0001-z"
+    },
+    {
+      "refId": 16,
+      "citation": "Hanifin JM, Thurston M, Omoto M, et al. The eczema area and severity index (EASI): assessment of reliability in atopic dermatitis. Exp Dermatol. 2001;10:11-18.",
+      "url": "https://doi.org/10.1034/j.1600-0625.2001.100102.x"
+    },
+    {
+      "refId": 17,
+      "citation": "Chopra R, Vakharia PP, Sacotte R, et al. Severity strata for Eczema Area and Severity Index (EASI), modified EASI, Scoring Atopic Dermatitis (SCORAD), objective SCORAD, Investigator's Global Assessment and body surface area. Br J Dermatol. 2017;177:1316-1321.",
+      "url": "https://doi.org/10.1111/bjd.15641"
+    },
+    {
+      "refId": 18,
+      "citation": "Schmitt J, Williams H; HOME Development Group. Harmonising Outcome Measures for Eczema (HOME). Report from the First International Consensus Meeting (HOME I), 6 July 2010, Munich, Germany. Br J Dermatol. 2010;163:1166-1168.",
+      "url": "https://doi.org/10.1111/j.1365-2133.2010.10054.x"
+    },
+    {
+      "refId": 19,
+      "citation": "Chalmers JR, Thomas KS, Apfelbacher C, et al. Report from the fifth international consensus meeting to harmonize core outcome measures for atopic eczema/dermatitis clinical trials (HOME initiative). Br J Dermatol. 2018;178:e332-e341.",
+      "url": "https://doi.org/10.1111/bjd.16543"
+    },
+    {
+      "refId": 20,
+      "citation": "van Zuuren EJ, Fedorowicz Z, Christensen R, Lavrijsen A, Arents BWM. Emollients and moisturisers for eczema. Cochrane Database Syst Rev. 2017;2:CD012119.",
+      "url": "https://doi.org/10.1002/14651858.CD012119.pub2"
+    },
+    {
+      "refId": 21,
+      "citation": "Ashcroft DM, Dimmock P, Garside R, Stein K, Williams HC. Efficacy and tolerability of topical pimecrolimus and tacrolimus in the treatment of atopic dermatitis: meta-analysis of randomised controlled trials. BMJ. 2005;330:516.",
+      "url": "https://doi.org/10.1136/bmj.38376.439653.d3"
+    },
+    {
+      "refId": 22,
+      "citation": "Garside R, Stein K, Castelnuovo E, et al. The effectiveness and cost-effectiveness of pimecrolimus and tacrolimus for atopic eczema: a systematic review and economic evaluation. Health Technol Assess. 2005;9:iii, xi-xiv, 1-230.",
+      "url": "https://doi.org/10.3310/hta9290"
+    },
+    {
+      "refId": 23,
+      "citation": "Paller AS, Tom WL, Lebwohl MG, et al. Efficacy and safety of crisaborole ointment, a novel, nonsteroidal phosphodiesterase 4 (PDE4) inhibitor for the topical treatment of atopic dermatitis (AD) in children and adults. J Am Acad Dermatol. 2016;75:494-503.e6.",
+      "url": "https://doi.org/10.1016/j.jaad.2016.05.046"
+    },
+    {
+      "refId": 24,
+      "citation": "Simpson EL, Bieber T, Guttman-Yassky E, et al. Two Phase 3 Trials of Dupilumab versus Placebo in Atopic Dermatitis. N Engl J Med. 2016;375:2335-2348.",
+      "url": "https://doi.org/10.1056/NEJMoa1610020"
+    },
+    {
+      "refId": 25,
+      "citation": "Guttman-Yassky E, Thaçi D, Pangan AL, et al. Upadacitinib in adults with moderate to severe atopic dermatitis: 16-week results from a randomized, placebo-controlled trial. J Allergy Clin Immunol. 2020;145:877-884.",
+      "url": "https://doi.org/10.1016/j.jaci.2019.11.025"
+    },
+    {
+      "refId": 26,
+      "citation": "Guttman-Yassky E, Teixeira HD, Simpson EL, et al. Once-daily upadacitinib versus placebo in adolescents and adults with moderate-to-severe atopic dermatitis (Measure Up 1 and Measure Up 2): results from two replicate double-blind, randomised controlled phase 3 trials. Lancet. 2021;397:2151-2168.",
+      "url": "https://doi.org/10.1016/s0140-6736(21)00588-2"
+    },
+    {
+      "refId": 27,
+      "citation": "Simpson EL, Sinclair R, Forman S, et al. Efficacy and safety of abrocitinib in adults and adolescents with moderate-to-severe atopic dermatitis (JADE MONO-1): a multicentre, double-blind, randomised, placebo-controlled, phase 3 trial. Lancet. 2020;396:255-266.",
+      "url": "https://doi.org/10.1016/s0140-6736(20)30732-7"
+    },
+    {
+      "refId": 28,
+      "citation": "Simpson EL, Lacour JP, Spelman L, et al. Baricitinib in patients with moderate-to-severe atopic dermatitis and inadequate response to topical corticosteroids: results from two randomized monotherapy phase III trials. Br J Dermatol. 2020;183:242-255.",
+      "url": "https://doi.org/10.1111/bjd.18898"
+    },
+    {
+      "refId": 29,
+      "citation": "Ferreira S, Guttman-Yassky E, Torres T. Selective JAK1 Inhibitors for the Treatment of Atopic Dermatitis: Focus on Upadacitinib and Abrocitinib. Am J Clin Dermatol. 2020;21:783-798.",
+      "url": "https://doi.org/10.1007/s40257-020-00548-6"
+    },
+    {
+      "refId": 30,
+      "citation": "Lio PA, Lee M, LeBovidge J, Timmrel MA, Spergel J. Clinical Management of Atopic Dermatitis: Practical Highlights and Updates from the Atopic Dermatitis Practice Parameter 2012. J Allergy Clin Immunol Pract. 2014;2:361-369.",
+      "url": "https://doi.org/10.1016/j.jaip.2014.02.015"
+    }
+  ],
+  "summaryParagraphs": [
+    "Atopic dermatitis (AD, atopic eczema) is a chronic, relapsing, intensely pruritic inflammatory skin disease driven by epidermal barrier dysfunction, type-2 immune polarisation, and secondary microbial dysbiosis. It typically begins in infancy or early childhood but may persist, recur, or first present in adolescence or adulthood. Global prevalence is high in children and remains clinically important in adults because of itch, sleep loss, infection risk, and psychosocial burden [13-15]. Diagnosis is clinical. Use Hanifin–Rajka major/minor features for classical framing and the UK Working Party (UKWP) criteria when a validated, operational definition is needed for clinical or research clarity [1-5]. Severity staging with Investigator Global Assessment (IGA) plus EASI (and preferably a patient-reported itch or quality-of-life measure) guides step-up from emollients and topical anti-inflammatory therapy to phototherapy or systemic agents [6,16-19]. In Bangladesh and other resource-limited settings, first secure continuous emollient supply, teach correct topical corticosteroid (TCS) potency by site, treat secondary infection early, and avoid unnecessary broad dietary restriction. Systemic advanced therapies (dupilumab, oral JAK inhibitors) belong to refractory moderate-to-severe disease after topical optimisation [7-11,20]. [1,6,13,14]",
+    "Barrier failure—often linked to FLG loss-of-function variants and environmental stressors—permits allergen, irritant and microbial penetration that amplifies Th2/Th22 inflammation, IL-4/IL-13-driven itch, and further barrier impairment [13-15]. Staphylococcus aureus colonisation is common and can drive flares through toxins and superantigens; clinically infected AD requires antimicrobial assessment separate from anti-inflammatory therapy [14,15]. Food allergy can coexist, especially in infants with early-onset severe AD, but most childhood AD is not cured by elimination diets. Restrict diets only when history and allergy work-up support a causal food trigger; otherwise barrier and anti-inflammatory care remain primary [14,30]. Pregnancy, infancy, elderly skin and facial/flexural sites change potency and vehicle choices. Prefer emollients and site-appropriate TCS/TCI; systemic immunosuppressants and oral JAK inhibitors require specialist risk–benefit review in these groups [10,11]. [13-15,30]",
+    "First-line care is liberal, frequent emollient use plus reactive and, when indicated, proactive topical anti-inflammatory therapy. Choose TCS potency by site and severity: mild agents for face and folds, moderate to potent agents for trunk and limbs for defined courses, then step down [7,9,11,12]. Topical calcineurin inhibitors (tacrolimus, pimecrolimus) are valuable on face, eyelids and intertriginous skin and for proactive maintenance [21,22]. Crisaborole 2% ointment is a nonsteroidal PDE4 inhibitor option for mild-to-moderate AD where available and affordable [23]. Narrowband UVB (and selected other phototherapy modalities) is an intermediate step for widespread disease when topical therapy is insufficient [8,11]. For moderate-to-severe refractory AD, dupilumab (IL-4Rα blockade) and selective oral JAK1 inhibitors (upadacitinib, abrocitinib) or JAK1/2 baricitinib have robust phase 3 evidence; choose by age licensing, comorbidity, infection risk, monitoring capacity and cost [10,24-29]. [7,10,11,24]",
+    "Explain the chronic remitting–relapsing course at diagnosis so patients do not abandon emollients after a clear spell. Proactive twice-weekly TCS or TCI to previously active sites can reduce flare frequency after control is achieved [7,9,11]. Screen for asthma, allergic rhinitis, sleep disruption, anxiety/depression and school or work impairment; AD care is incomplete if only the visible rash is treated [14,15,30]. Escalate urgently for eczema herpeticum (punched-out erosions, fever, rapid dissemination), severe bacterial infection, or erythroderma. Do not escalate to systemic immunosuppression without excluding infection and confirming adherence to basics [8,14]. [7,8,14]",
+    "Shared decision-making should cover potency myths, steroid phobia, vehicle preference (ointment vs cream vs lotion), and the realistic timeline for itch improvement—often days for potent TCS, longer for barrier recovery [7,20]. Document baseline EASI/IGA, itch score and body surface area so later decisions about phototherapy or biologics/JAKi are evidence-based rather than impressionistic [16-19]. In overcrowded hot-humid environments, prefer non-greasy emollients for daytime adherence, keep nails short, and counsel on sweat, dust and harsh detergent triggers without promising cure through environment alone [14,20]. [16,17,20]",
+    "AD is not a single phenotype: infantile facial/extensor disease, childhood flexural lichenification, adult head-and-neck or hand-predominant patterns, and prurigo-like nodules all fall under the same disease spectrum [13-15]. Always reassess diagnosis when adult-onset disease is atypical, unilateral, treatment-refractory, or accompanied by systemic red flags—consider contact dermatitis, cutaneous T-cell lymphoma, scabies, psoriasis and immunodeficiency-associated eczema [6,14]. The therapeutic ladder is iterative: fix the foundation (emollient + infection + adherence), then escalate potency or modality, then consider advanced systemic therapy with a clear stop/continue plan [9-11]. [6,9,14]",
+    "Chronic AD care is a treat-to-control programme: define acceptable itch and sleep targets, maintain daily emollients, use proactive topical anti-inflammatory therapy on hotspot sites, and escalate only after adherence, infection and differential diagnosis have been audited [7,11,14]. In Bangladesh, reject chronic facial use of potent combination steroid creams sold over the counter, replace them with site-appropriate regimens, and document fingertip-unit teaching before labelling disease refractory [7,11,20]. When advanced therapy is inaccessible, optimised topicals, infection control and phototherapy (if available) still change prognosis substantially [8,11]. [7,8,11,20]"
+  ],
+  "recommendations": [
+    {
+      "text": "Diagnose AD clinically using Hanifin–Rajka features and/or UKWP criteria; reserve biopsy and extensive laboratory panels for atypical, adult-onset, or treatment-refractory presentations [1-6].",
+      "grade": "A",
+      "source": "UKWP; AAD section 1",
+      "sourceUrl": "https://doi.org/10.1016/j.jaad.2013.10.010",
+      "evidenceLevel": "Validated criteria and guideline"
+    },
+    {
+      "text": "Record severity with IGA plus EASI (or validated alternative) and a patient-reported itch or quality-of-life measure at baseline and before each major step-up [16-19].",
+      "grade": "A",
+      "source": "HOME / EASI validation",
+      "sourceUrl": "https://doi.org/10.1111/bjd.15641",
+      "evidenceLevel": "Outcome-measure consensus"
+    },
+    {
+      "text": "Prescribe liberal emollients as continuous foundational therapy for all severities; demonstrate quantity (fingertip units / grams) rather than saying “use moisturizer” [7,12,20].",
+      "grade": "A",
+      "source": "Cochrane emollients; AAD topical",
+      "sourceUrl": "https://doi.org/10.1002/14651858.CD012119.pub2",
+      "evidenceLevel": "Systematic review"
+    },
+    {
+      "text": "Match TCS potency to site and severity: mild for face/folds, moderate–potent for trunk/limbs, with defined duration, then step-down or proactive twice-weekly maintenance [7,9,11,12].",
+      "grade": "A",
+      "source": "AAD and EuroGuiDerm topical guidance",
+      "sourceUrl": "https://doi.org/10.1111/jdv.18429",
+      "evidenceLevel": "Guideline"
+    },
+    {
+      "text": "Use tacrolimus 0.03%/0.1% or pimecrolimus 1% for facial, eyelid and intertriginous AD and as steroid-sparing proactive therapy after control [21,22] [12].",
+      "grade": "A",
+      "source": "TCI meta-analysis and HTA",
+      "sourceUrl": "https://doi.org/10.1136/bmj.38376.439653.d3",
+      "evidenceLevel": "Meta-analysis"
+    },
+    {
+      "text": "Consider crisaborole 2% for mild-to-moderate AD when a nonsteroidal topical is preferred and the product is accessible [23].",
+      "grade": "B",
+      "source": "Phase 3 crisaborole trials",
+      "sourceUrl": "https://doi.org/10.1016/j.jaad.2016.05.046",
+      "evidenceLevel": "Randomized trials"
+    },
+    {
+      "text": "Offer narrowband UVB phototherapy for widespread AD insufficiently controlled by optimised topicals when infection is excluded and logistics allow [8,11].",
+      "grade": "A",
+      "source": "AAD systemic/phototherapy; EuroGuiDerm II",
+      "sourceUrl": "https://doi.org/10.1016/j.jaad.2014.08.038",
+      "evidenceLevel": "Guideline"
+    },
+    {
+      "text": "For moderate-to-severe AD refractory to topical care, consider dupilumab as a first-line advanced systemic option where available, with conjunctivitis counselling [10,24].",
+      "grade": "A",
+      "source": "SOLO trials; EuroGuiDerm I",
+      "sourceUrl": "https://doi.org/10.1056/NEJMoa1610020",
+      "evidenceLevel": "Phase 3 RCTs"
+    },
+    {
+      "text": "Oral JAK inhibitors (upadacitinib, abrocitinib, baricitinib) are highly effective for refractory disease but require infection, laboratory and cardiovascular/VTE risk review before and during therapy [25-29].",
+      "grade": "A",
+      "source": "Measure Up, JADE MONO, baricitinib phase 3",
+      "sourceUrl": "https://doi.org/10.1016/s0140-6736(21)00588-2",
+      "evidenceLevel": "Phase 3 RCTs"
+    },
+    {
+      "text": "Do not impose empiric multipfood elimination diets; investigate food allergy when history suggests immediate reactions or in severe early-onset infantile AD with supporting work-up [14,30].",
+      "grade": "A",
+      "source": "Lancet AD review; practice parameter highlights",
+      "sourceUrl": "https://doi.org/10.1016/s0140-6736(20)31286-1",
+      "evidenceLevel": "Review and parameter"
+    },
+    {
+      "text": "Treat clinically infected AD (impetigo, cellulitis, fever) with antimicrobials while continuing appropriate anti-inflammatory care; swab recurrent or outbreak-associated infection [14,15].",
+      "grade": "A",
+      "source": "Pathophysiology and clinical reviews",
+      "sourceUrl": "https://doi.org/10.1038/s41572-018-0001-z",
+      "evidenceLevel": "Expert review"
+    },
+    {
+      "text": "In resource-limited Bangladesh practice, prioritise affordable emollient continuity, correct TCS potency teaching, infection control and avoidance of unsafe long-term potent facial steroid use before costly advanced agents [7,11,20] [12].",
+      "grade": "B",
+      "source": "Guideline principles applied to access",
+      "sourceUrl": "https://doi.org/10.1111/jdv.18429",
+      "evidenceLevel": "Guideline adaptation"
+    }
+  ],
+  "etiologyEpidemiology": [
+    "AD arises from gene–environment interaction. Loss-of-function FLG variants impair stratum corneum integrity, raise transepidermal water loss and facilitate allergen penetration, but many patients without FLG mutations still develop classical AD [13-15]. Urban living, hard water, climate, pollution, early antibiotic exposure and reduced microbial diversity are implicated population-level contributors. Family history of atopy increases risk but is neither necessary nor sufficient for diagnosis. [13-15]",
+    "Type-2 cytokines (IL-4, IL-13, IL-31) drive itch, IgE class switching and further barrier downregulation, creating a self-amplifying loop [15,24]. Th22 and variable Th1/Th17 signals contribute in chronic and ethnic-phenotype subsets. This immune biology underpins IL-4Rα blockade and JAK pathway inhibition as disease-modifying strategies. [15,24,29]",
+    "Cutaneous dysbiosis with S. aureus overgrowth is nearly universal in flares and correlates with severity [14,15]. Bacterial toxins can act as superantigens and worsen inflammation even without frank cellulitis. Clinical infection still requires separate antimicrobial decisions; colonisation alone does not mandate systemic antibiotics. [14,15]",
+    "Epidemiology shows high childhood prevalence with variable persistence into adulthood; adult-onset AD is increasingly recognised [13,14]. Disease burden includes sleep loss, school/work impairment, stigma and mental-health comorbidity. In tropical overcrowded settings, heat, sweat and detergent exposure amplify irritant flares. [13,14]",
+    "The atopic march concept links early AD with later food allergy, asthma and rhinitis, though pathways are heterogeneous [14,30]. Severe early barrier disease may facilitate food sensitisation, supporting careful allergy assessment rather than universal restriction. Not every child with AD will develop asthma; counsel probabilistically. [14,30]",
+    "Irritants (soap, wool, heat, friction) and allergens (house dust mite, pollen, contact allergens) trigger flares on a predisposed barrier [13,14]. Occupational hand exposure is a major adult aggravator. Trigger advice should be specific and feasible, not an endless avoid-everything list. [13,14]",
+    "Psychological stress and sleep disruption both follow and amplify itch–scratch cycles [14,15]. Addressing mental health and sleep is part of disease control, not an optional extra. Sedating antihistamines may help sleep in selected patients but do not treat the inflammatory core. [14,30]",
+    "Iatrogenic factors include steroid phobia leading to undertreatment, and conversely unsupervised potent TCS causing atrophy or topical steroid withdrawal phenotypes [7,11]. Educate on fingertip units and site-based potency to prevent both extremes. Document prior systemic or folk remedies that may have masked infection. [7,11]",
+    "Climate and housing modify phenotype expression: heat and sweat intensify itch–scratch loops in tropical Bangladesh summers, while winter xerosis from indoor heat or wind increases fissuring on extremities [14]. Dense household occupancy raises S. aureus transmission risk during weeping flares, so treating infection and advising against shared towels matters clinically [14,15]. Public messaging should destigmatise AD as “dirt-related” while still promoting practical hygiene that protects broken skin. [14,15]"
+  ],
+  "clinicalPresentation": [
+    "Pruritus is obligatory for practical diagnosis and often precedes visible dermatitis [1,2,6]. Ask about nocturnal scratching, sleep interruption, and caregiver-observed rubbing in infants. Absent itch should prompt reconsideration of the diagnosis. [1,2,6]",
+    "Infantile AD often affects face, scalp and extensor limbs with exudative plaques; the napkin area is relatively spared compared with irritant dermatitis [6,13]. Childhood disease typically shifts to antecubital and popliteal fossae, wrists and ankles with lichenification. Adult patterns include flexural disease, head-and-neck dermatitis, hand eczema and prurigo-like nodules. [6,13,14]",
+    "Acute lesions are erythematous, oedematous, papular or vesicular with excoriation; chronic lesions show lichenification, xerosis and dyspigmentation [6,13]. In richly pigmented skin, erythema may be subtle—rely on lichenification, scale, pigment change and itch history. Post-inflammatory hyper- or hypopigmentation is common and needs counselling. [6,14]",
+    "Associated signs include Dennie–Morgan folds, periorbital darkening, pityriasis alba, keratosis pilaris, palmar hyperlinearity and white dermographism [1,6]. These support but do not alone confirm AD. Ichthyosis vulgaris overlap suggests FLG-related barrier disease. [1,6,15]",
+    "Secondary infection produces honey crust, pustules, weeping, tenderness or fever [14,15]. Eczema herpeticum shows monomorphic punched-out erosions, often facial, with pain and systemic features—an emergency. Sudden painful deterioration on immunosuppressants or after TCS should raise HSV consideration. [14,15]",
+    "Severity ranges from limited flexural patches to near-erythroderma [16,17]. Patient-reported itch and sleep may be disproportionate to clinician-visible area, especially on pigmented skin. Use composite assessment rather than area alone when deciding systemic therapy. [16-18]",
+    "Hand and foot AD impairs work and school; look for vesicular pompholyx-like flares and chronic hyperkeratotic fissuring [14]. Always consider irritant/allergic contact dermatitis and dermatophyte infection in acral disease. Patch testing is appropriate for chronic hand eczema not explained by AD alone. [6,14]",
+    "Ocular involvement includes blepharitis, keratoconjunctivitis and increased cataract/keratoconus risk in longstanding severe disease [14,15]. Facial TCS overuse can cause perioral dermatitis or glaucoma risk with periocular application. Prefer TCI near eyelids when chronic control is needed. [11,21]",
+    "Psychosocial impact—bullying, sexual impairment, anxiety, depression—should be elicited routinely [14,15]. Adolescent non-adherence often reflects stigma or steroid fear rather than disease mildness. Involve caregivers and school where function is affected. [14,30]",
+    "Pregnancy can improve, worsen or leave AD unchanged; facial and hand flares are common [11]. Plan safe topical strategies before conception when possible. Document any prior systemic agents requiring washout. [10,11]"
+  ],
+  "differentialDiagnosis": [
+    {
+      "condition": "Irritant contact dermatitis",
+      "distinguishingFeature": "Distribution maps to exposure (detergents, occlusive gloves, saliva, napkin); borders may be sharp; less personal atopy history; improvement with exposure removal. AD may coexist—treat barrier and review occupation [6,14]."
+    },
+    {
+      "condition": "Allergic contact dermatitis",
+      "distinguishingFeature": "Delayed reaction to a specific allergen (nickel, fragrance, topical medicaments, rubber). Patch testing distinguishes ACD from AD flares; chronic facial/hand AD should trigger contact history [6,14]."
+    },
+    {
+      "condition": "Seborrhoeic dermatitis",
+      "distinguishingFeature": "Greasy yellow scale on scalp, eyebrows, nasolabial folds and chest; less intense itch than AD; infantile seborrhoea can overlap with AD but napkin and flexure patterns differ [6]."
+    },
+    {
+      "condition": "Psoriasis",
+      "distinguishingFeature": "Well-demarcated plaques with silvery scale, extensor and scalp preference, nail pitting; itch variable. Flexural psoriasis can mimic AD; look for Auspitz sign and family history [6,14]."
+    },
+    {
+      "condition": "Scabies",
+      "distinguishingFeature": "Nocturnal itch plus burrows, web-space/genital papules and itchy contacts; can trigger eczematous flare. Always examine webs and ask about household itch before escalating immunosuppressants [6]."
+    },
+    {
+      "condition": "Tinea corporis / dermatophytosis",
+      "distinguishingFeature": "Annular active-edged plaques, positive KOH; steroid-modified tinea (tinea incognito) looks like refractory AD. Scrape before long potent TCS courses on annular lesions [6]."
+    },
+    {
+      "condition": "Cutaneous T-cell lymphoma (mycosis fungoides)",
+      "distinguishingFeature": "Adult-onset persistent patches/plaques, poikiloderma, buttock girdle distribution, lymphadenopathy; biopsy if “AD” begins late and ignores therapy [6,14]."
+    },
+    {
+      "condition": "Immunodeficiency-associated eczema (e.g. hyper-IgE, DOCK8, Wiskott–Aldrich)",
+      "distinguishingFeature": "Early severe eczema plus recurrent infections, abscesses, petechiae/thrombocytopenia, failure to thrive or dysmorphic clues—refer immunology [14,15]."
+    },
+    {
+      "condition": "Nummular dermatitis",
+      "distinguishingFeature": "Coin-shaped exudative plaques on limbs, intense itch, often adult; may overlap AD spectrum but lacks flexural infantile history. Exclude infection and contact allergens [6]."
+    },
+    {
+      "condition": "Drug eruption / eczema-like adverse reaction",
+      "distinguishingFeature": "Temporal link to a new medicine, often widespread and symmetric; eosinophilia or systemic features support drug causality rather than idiopathic AD flare [6]."
+    },
+    {
+      "condition": "Photodermatoses / photoaggravated eczema",
+      "distinguishingFeature": "Photosensitive distribution (face, V of neck, dorsal hands) with seasonal pattern; distinguish from head-and-neck AD and from photoallergic contact dermatitis [14]."
+    },
+    {
+      "condition": "Netherton syndrome / other genodermatoses",
+      "distinguishingFeature": "Congenital erythroderma, bamboo hair, failure to thrive; do not treat as ordinary AD with unchecked potent systemic immunosuppression without diagnosis [15]."
+    }
+  ],
+  "diagnosticWorkup": [
+    "Start with a structured history: age of onset, itch, sleep, distribution evolution, personal/family atopy, triggers, prior therapies and adherence, infection episodes, and impact on school/work [6,14]. Ask specifically about foods causing immediate IgE-type reactions versus delayed non-specific worsening after spicy or dairy meals. Medication and traditional remedy history prevents missing steroid misuse or sensitising topicals. [6,14,30]",
+    "Examine the whole skin, hairline, eyelids, hands, feet and flexures with attention to pigmented-skin signs [6]. Document body surface area, lichenification, infection and post-inflammatory pigment change. Photograph representative sites with consent for longitudinal comparison. [6,16]",
+    "Apply UKWP or Hanifin–Rajka criteria explicitly in the record when diagnosis is debated [1-5]. UKWP requires an itchy skin condition plus three or more of: flexural history, personal asthma/hay fever (or first-degree relative if child <4), dry skin history, visible flexural eczema (or cheeks/forehead/outer limbs if <4), and onset under 2 years (not used if <4) [2,5]. State which criteria are met rather than writing only “eczema”. [1-5]",
+    "Severity tools: IGA for global impression; EASI for area×intensity across four body regions; consider POEM or DLQI for patient burden [16-19]. HOME recommends core domains of clinician-reported signs, patient-reported symptoms, quality of life and long-term control for trials; adapt pragmatically in clinic [18,19]. Re-score before escalating to phototherapy or systemic drugs. [16-19]",
+    "Routine blood tests do not diagnose AD. Total IgE and eosinophils may be elevated but lack specificity [6,13]. Obtain labs when planning systemic therapy (blood count, liver/renal function, hepatitis/TB screening as indicated for immunosuppressants or JAKi), or when immunodeficiency/differential diagnoses are considered. Allergy testing is hypothesis-driven, not a blanket panel. [6,10,30]",
+    "Skin swab when infection is clinically evident or recurrent; viral PCR/swab if eczema herpeticum is suspected [14,15]. KOH microscopy for annular or treatment-resistant plaques. Bacterial culture guides antibiotics in recurrent impetigo or MRSA-risk settings. [14,15]",
+    "Patch testing for chronic hand, facial or treatment-resistant dermatitis with relevant series including topical medicaments and cosmetics [6,14]. Defer testing during severe flares or high-dose immunosuppression when possible, or interpret cautiously. Positive relevant allergens change avoidance counselling. [6]",
+    "Biopsy is uncommon; use for suspected CTCL, psoriasis overlap, connective-tissue disease or atypical adult-onset disease [6,14]. Inform the pathologist of the clinical differential. Do not delay foundational therapy while awaiting histology if classical childhood AD is clear. [6,14]"
+  ],
+  "treatmentLines": [
+    {
+      "line": "Foundation: continuous emollient and trigger/infection control",
+      "description": "All patients receive liberal emollient therapy: apply at least twice daily and after every bath or hand wash, using enough product (often 250–500 g/week for an adult with widespread xerosis). Prefer fragrance-free ointments or creams matched to climate and patient preference; in hot humid Bangladesh settings a lighter cream by day and richer ointment at night may improve adherence [7,20]. Short lukewarm baths, gentle cleansers, immediate post-bath emollient (“soak and smear”), nail trimming and soft cotton clothing reduce itch–scratch injury. Identify feasible triggers—harsh detergent, wool, heat/sweat, dust—without imposing impossible lifestyle overhaul. Treat clinically infected skin concurrently. Do not withhold anti-inflammatory therapy while waiting for perfect emollient adherence; run both in parallel. [7,11,20] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "emollient",
+        "petroleum jelly"
+      ]
+    },
+    {
+      "line": "Mild-to-moderate AD: TCS potency ladder with site-based prescribing",
+      "description": "For active mild-to-moderate disease, add topical corticosteroids using fingertip-unit dosing. Face, eyelids and intertriginous skin: mild TCS (e.g. hydrocortisone 1%) for short courses. Trunk and limbs: moderate (e.g. clobetasone/betamethasone valerate diluted regimens per local formulary) to potent TCS for flares lasting typically 3–14 days depending on severity and site, then taper or switch to proactive twice-weekly application on healed sites [7,9,11]. Avoid prolonged continuous potent TCS on face and folds. Counselling must address steroid phobia with written plans; underuse drives chronicity as often as overuse drives atrophy. If response is poor, audit quantity applied, infection, contact allergy and diagnosis before escalating class indefinitely. [7,9,11] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "hydrocortisone",
+        "betamethasone",
+        "mometasone",
+        "clobetasol"
+      ]
+    },
+    {
+      "line": "Sensitive sites and steroid-sparing: TCI and crisaborole",
+      "description": "Tacrolimus 0.03% (children) or 0.1% (adults/older children per label) ointment twice daily to active facial/flexural lesions, then proactive twice-weekly maintenance, is guideline-supported steroid-sparing care [11,21,22]. Pimecrolimus 1% cream is an alternative for mild–moderate sensitive-site disease. Warn about transient burning for the first days; cold storage of the tube can help. Crisaborole 2% ointment twice daily is an option for mild-to-moderate AD aged ≥2 years where licensed and available, including patients who refuse TCS [23]. Application-site pain can limit use—counsel anticipatorily. Combine with emollients; do not use TCI on frankly infected skin until infection is addressed. [11,21-23] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "tacrolimus",
+        "pimecrolimus",
+        "crisaborole"
+      ]
+    },
+    {
+      "line": "Widespread refractory disease: phototherapy bridge",
+      "description": "When optimised topical therapy fails for widespread AD, narrowband UVB thrice weekly is the usual phototherapy of choice under dermatology supervision, after excluding active infection and reviewing photosensitising drugs and skin-cancer risk [8,11]. A course often spans weeks with gradual dose increments per local protocol; combine with continued emollients and cautious TCS. PUVA or other modalities are reserved for specialist indications. Phototherapy access may be limited in resource-constrained settings—document this barrier when justifying systemic therapy. Stop or pause if photoaggravation, severe erythema or cutaneous infection develops. [8,11] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "nbuvb"
+      ]
+    },
+    {
+      "line": "Moderate-to-severe refractory AD: dupilumab biologic pathway",
+      "description": "Dupilumab (anti-IL-4Rα) is indicated for moderate-to-severe AD inadequately controlled by topicals, with age and dosing per local label—commonly adult loading 600 mg subcutaneously then 300 mg every 2 weeks, with weight-based paediatric schedules [10,24]. Continue emollients and allow topical anti-inflammatories as needed. Expect clinically meaningful itch and EASI improvement over weeks based on SOLO and subsequent programmes. Counsel about conjunctivitis/ocular surface disease, injection-site reactions and the need for cold-chain adherence. Live vaccines are generally avoided during therapy per product guidance. In Bangladesh, cost and supply often limit access; ensure topical optimisation and infection control are documented before labelling disease “biologic-refractory”. [10,24] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "dupilumab"
+      ]
+    },
+    {
+      "line": "Moderate-to-severe refractory AD: oral JAK inhibitor pathway",
+      "description": "Selective oral JAK1 inhibitors upadacitinib and abrocitinib, and JAK1/2 inhibitor baricitinib, produce rapid itch and skin responses in phase 3 programmes for refractory moderate-to-severe AD [25-29]. Typical labelled adult doses include upadacitinib 15 or 30 mg daily, abrocitinib 100 or 200 mg daily, and baricitinib 2 or 4 mg daily, adjusted for age, renal function, risk and local approval. Before initiation: screen for infection (including TB/hepatitis as indicated), review MACE/VTE/malignancy risk factors, check blood count and lipids, and discuss contraception and pregnancy avoidance. Monitor labs per label. Prefer the lowest effective dose; combine with topicals; interrupt for serious infection or laboratory toxicity. [10,25-29] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "upadacitinib",
+        "abrocitinib",
+        "baricitinib"
+      ]
+    },
+    {
+      "line": "Traditional systemic immunosuppressants when advanced agents unavailable",
+      "description": "Where dupilumab/JAKi are inaccessible, dermatology-supervised cyclosporine, methotrexate, azathioprine or mycophenolate remain guideline-recognised options for severe AD after topical/phototherapy failure, each with organ-toxicity monitoring [8-10]. Cyclosporine acts relatively quickly but is limited by renal and blood-pressure effects; methotrexate is widely used with haematologic/hepatic monitoring; azathioprine requires TPMT/NUDT15 consideration where available. Always confirm infection is controlled and pregnancy plans are addressed. Use the minimum effective duration and maintain topical foundation. These agents are not “safer” than biologics simply because they are older—monitoring discipline is mandatory. [8-10] Reassess diagnosis, adherence and infection before declaring the line failed, and document the next-step criteria in the chart so escalation remains deliberate rather than reactive [7,11,12].",
+      "medicineGenericKeys": [
+        "cyclosporine",
+        "methotrexate",
+        "azathioprine"
+      ]
+    }
+  ],
+  "specialPopulations": [
+    {
+      "population": "Infants and young children",
+      "considerations": "Use UKWP age-adapted signs, prioritise emollients, and prefer mild–moderate TCS on the body with extreme caution on the face; TCI from licensed ages for sensitive sites [2,7,11]. Investigate food allergy selectively in severe early-onset disease with suggestive history—not universal elimination [14,30]. Watch growth, sleep and caregiver burnout; avoid potent continuous facial TCS. [2,7,11,30]"
+    },
+    {
+      "population": "Adolescents",
+      "considerations": "Address adherence, steroid fear, cosmetic preferences and mental health openly [14]. Licensed advanced therapies may include dupilumab and selected JAKi by age—verify local labels [10,24,26,27]. School function and bullying deserve explicit enquiry. [10,14]"
+    },
+    {
+      "population": "Pregnancy and lactation",
+      "considerations": "Emollients and judicious TCS are mainstays; favour the lowest effective potency and avoid large-area ultra-potent exposure when possible [11]. TCI are often used off-label with caution on limited areas; systemic immunosuppressants and oral JAKi are generally avoided—specialist advice required [10,11]. Dupilumab pregnancy data are evolving; shared decision-making with obstetrics is essential. [10,11]"
+    },
+    {
+      "population": "Older adults",
+      "considerations": "Xerosis, polypharmacy, fall risk from sedating antihistamines, and thinner skin increase TCS atrophy risk [14]. Review renal function before methotrexate or baricitinib; screen infection carefully before immunosuppression [10]. Consider photocarcinogenesis history before phototherapy. [10,14]"
+    },
+    {
+      "population": "Skin of colour / South Asian phenotypes",
+      "considerations": "Erythema is underestimated—use lichenification, scale, pigment change and EASI carefully [14,16]. Post-inflammatory dyspigmentation needs early counselling to prevent harmful bleaching cream use. Follicular and prurigo-like patterns may be more prominent. [14,16]"
+    },
+    {
+      "population": "Bangladesh / resource-limited care",
+      "considerations": "Secure affordable emollient (white soft paraffin, urea creams where tolerated) and teach fingertip-unit TCS use before concluding failure [7,20]. Benzyl-alcohol–free/fragrance-free products are ideal but imperfect local substitutes beat no emollient. Reserve costly biologics/JAKi for clearly severe refractory disease after documented topical optimisation and infection control [10,11]. [7,10,20]"
+    },
+    {
+      "population": "AD with asthma or allergic rhinitis",
+      "considerations": "Coordinate inhaler/allergy care; dupilumab may benefit comorbid type-2 airway disease where indicated [24,30]. Avoid oral corticosteroid cycling for skin disease when safer AD-specific options exist. Allergen immunotherapy is not first-line for AD alone. [24,30]"
+    },
+    {
+      "population": "Recurrent skin infection phenotype",
+      "considerations": "Optimise barrier and inflammation; swab and treat based on clinical infection; consider dilute bleach baths only with clear counselling where recommended by local protocol [14,15]. Recurrent abscesses or deep infections warrant immunodeficiency evaluation. Do not start JAKi/biologic during uncontrolled active infection. [10,14,15]"
+    }
+  ],
+  "monitoringFollowUp": [
+    "At each visit record itch, sleep, flare frequency, adherence (emollient grams/week, TCS fingertip units), and adverse effects [7,16]. Repeat IGA/EASI when changing treatment tier. Ask about ocular symptoms on dupilumab and infection symptoms on JAKi/immunosuppressants. [7,10,16]",
+    "For TCS, inspect treated sites for atrophy, striae, telangiectasia and tachyphylaxis concerns [7,11]. If continuous daily potent use exceeds a few weeks, redesign to proactive/intermittent regimens. Facial and genital skin need earlier review. [7,11]",
+    "For phototherapy, log doses, erythema and cumulative exposure; skin-cancer surveillance per dermatology protocol [8]. Missed sessions require protocol-based dose adjustment, not automatic escalation. [8]",
+    "For dupilumab, review response at 4–16 weeks using EASI/itch; manage conjunctivitis with lubrication and ophthalmology referral when needed [10,24]. Check injection technique and cold-chain adherence. [10,24]",
+    "For oral JAKi, monitor CBC, lipids and clinical infection risk per label; counsel urgently about herpes zoster, VTE symptoms and pregnancy prevention [25-29]. Interrupt therapy for serious infection or significant laboratory abnormalities. [25-29]",
+    "For cyclosporine/methotrexate/azathioprine, follow organ-specific blood-pressure and laboratory schedules [8-10]. Document cumulative cyclosporine exposure and methotrexate alcohol counselling. [8-10]",
+    "Infection surveillance is continuous: educate patients to report fever, cold sores dissemination, rapidly worsening pain or pustulation [14,15]. Pause advanced therapy when serious infection is present. [14,15]",
+    "In resource-limited follow-up, use phone check-ins for adherence and flare triage when clinic return is difficult [20]. Prioritise in-person review for suspected eczema herpeticum, erythroderma or systemic-drug toxicity. [14,20]"
+  ],
+  "complicationsPrognosis": [
+    "Most children improve with age, but a substantial minority persist or relapse in adolescence/adulthood [13,14]. Early severe disease, FLG mutation and allergic multimorbidity predict persistence. Counsel families that “outgrowing” is common but not guaranteed. [13,14]",
+    "Quality-of-life impairment from itch and sleep loss can equal or exceed many chronic diseases [14,15]. Effective anti-inflammatory control often improves sleep within days to weeks. Persistent impairment despite clear skin suggests comorbid mental health needs. [14,15]",
+    "Secondary bacterial infection and eczema herpeticum are the key acute dangers [14,15]. Prompt recognition prevents scarring and systemic illness. Recurrent infection should trigger adherence and immunodeficiency review. [14,15]",
+    "Ocular surface disease, cataract and keratoconus risk rise with chronic severe AD and sometimes with treatments [14]. Periocular steroid discipline and TCI use reduce iatrogenic harm. [11,14]",
+    "Advanced therapies achieve high EASI-75 and itch-response rates in trials, transforming refractory disease prognosis when accessible [24-28]. Real-world durability depends on adherence, infection and cost. Loss of response warrants adherence audit and specialist review. [24-28]",
+    "Post-inflammatory pigment change may outlast active dermatitis, especially in South Asian skin [14]. Prevent by earlier control; treat pigment cautiously and avoid toxic bleaching agents. [14]"
+  ],
+  "pathophysiology": [
+    "Stratum corneum lipids, filaggrin-derived natural moisturising factors and tight junctions normally seal the epidermis [15]. Barrier defects increase TEWL and permit antigen entry that primes cutaneous dendritic cells. Xerosis is therefore pathogenic, not cosmetic. [13-15]",
+    "IL-4 and IL-13 signalling via IL-4Rα/JAK1 pathways suppress barrier proteins and drive itch neuroimmune circuits [15,24,29]. IL-31 contributes to pruritus. Blocking these axes explains dupilumab and JAK inhibitor efficacy. [15,24,29]",
+    "Chronic scratching produces lichenification and neurogenic sensitisation that perpetuate itch after inflammation falls [14]. Behavioural itch control and rapid anti-inflammatory therapy interrupt this loop. Sedating antihistamines do not address IL-31/Th2 biology. [14]",
+    "S. aureus biocides and proteases damage barrier and amplify inflammation [15]. Microbiome diversity falls during flares and partially recovers with effective therapy. Antiseptic strategies are adjunctive to anti-inflammatory care. [14,15]",
+    "IgE sensitisation is common but neither necessary nor sufficient for AD diagnosis [13,14]. Intrinsic (non-IgE) and extrinsic phenotypes overlap clinically. Do not withhold AD therapy because IgE is normal. [13,14]",
+    "TCS act via glucocorticoid receptor-mediated anti-inflammatory gene regulation in skin immune cells [7]. TCI inhibit calcineurin-dependent T-cell activation locally [21]. Crisaborole raises cAMP via PDE4 inhibition [23]. [7,21,23]",
+    "Phototherapy modulates cutaneous immunity and antimicrobial peptides with NB-UVB preferred for safety/efficacy balance in AD [8]. Cumulative UV risk requires stewardship. [8]",
+    "Systemic JAKi interrupt multiple cytokine signals downstream of type-2 and other pathways, explaining rapid itch relief and infection vigilance needs [29]. Selectivity for JAK1 may influence benefit–risk among agents. [25-29]"
+  ],
+  "comorbidityManagement": [
+    {
+      "heading": "Asthma and allergic rhinitis",
+      "detail": "Screen for wheeze, nocturnal cough and seasonal rhinitis [14,30]. Optimise inhalers; consider dupilumab when both AD and type-2 asthma indications are met. Avoid attributing all breathlessness to anxiety during severe AD flares. [14,24,30]"
+    },
+    {
+      "heading": "Food allergy",
+      "detail": "Higher prevalence in early severe AD, but most flares are not food-driven [14,30]. Use allergy specialists for testing/challenge when history suggests IgE-mediated reactions. Empiric multipfood diets risk malnutrition and are not first-line AD therapy. [14,30]"
+    },
+    {
+      "heading": "Allergic contact dermatitis",
+      "detail": "Chronic facial/hand AD may be perpetuated by medicaments, preservatives or cosmetics [6]. Patch test strategically. Switch vehicles when sensitisation is proven. [6]"
+    },
+    {
+      "heading": "Mental health and sleep disorders",
+      "detail": "Anxiety, depression and ADHD associations are reported; sleep loss mediates much morbidity [14]. Treat skin aggressively and refer for psychological support when needed. Avoid long-term sedative dependence. [14]"
+    },
+    {
+      "heading": "Ocular disease",
+      "detail": "Coordinate with ophthalmology for chronic blepharitis, conjunctivitis on dupilumab, or suspected keratoconus [14,24]. Limit chronic periocular potent TCS. [11,14,24]"
+    },
+    {
+      "heading": "Obesity and metabolic disease",
+      "detail": "Obesity associates with AD severity in some cohorts and affects JAKi cardiovascular risk counselling [14,29]. Encourage activity without sweat-trigger fatalism. [14,29]"
+    },
+    {
+      "heading": "Immunodeficiency",
+      "detail": "Recurrent deep infections, abscesses, failure to thrive or syndromic features warrant immunology referral before escalating immunosuppression [15]. Hyper-IgE and related disorders can mimic severe AD. [15]"
+    },
+    {
+      "heading": "Occupational skin disease",
+      "detail": "Wet work, healthcare, food service and construction amplify hand AD [14]. Workplace adjustments and barrier programmes are therapeutic. Patch testing separates ACD. [6,14]"
+    }
+  ],
+  "complicationManagement": [
+    {
+      "heading": "Eczema herpeticum",
+      "detail": "Recognise punched-out erosions, pain and fever; start systemic aciclovir/valaciclovir urgently and consider admission for widespread or ocular disease [14,15]. Pause systemic immunosuppressants/JAKi; continue supportive skin care. Ophthalmology review if eyelid/ocular involvement. [14,15]"
+    },
+    {
+      "heading": "Bacterial superinfection / impetigo",
+      "detail": "Treat with topical or systemic antibiotics per local resistance patterns while maintaining emollients and appropriate TCS once infection is addressed [14,15]. Swab recurrent cases; decolonise selectively in specialist protocols. Do not use indefinite antibiotic courses for colonisation alone. [14,15]"
+    },
+    {
+      "heading": "Erythroderma",
+      "detail": "Admit for fluid/thermoregulation support, exclude drug hypersensitivity and infection, and use cautious supervised topical and systemic therapy [8,14]. Avoid abrupt cessation of long-term steroids without a plan. [8,14]"
+    },
+    {
+      "heading": "Topical steroid withdrawal / misuse injury",
+      "detail": "Red burning face after prolonged potent facial TCS needs specialist-guided taper, emollients, TCI where suitable, and psychological support [7,11]. Do not cycle escalating street steroid creams. [7,11]"
+    },
+    {
+      "heading": "Dupilumab-associated conjunctivitis",
+      "detail": "Start lubricating drops, liaise with ophthalmology, and consider topical anti-inflammatory eye therapy under eye-care guidance [10,24]. Most cases are manageable without stopping dupilumab; severe refractory eye disease may require dose/interval change or switch. [10,24]"
+    },
+    {
+      "heading": "JAKi infection or laboratory toxicity",
+      "detail": "Hold drug for serious infection, opportunistic infection or significant cytopenia/transaminitis per label [25-29]. Vaccinate for zoster when appropriate before initiation if possible. Restart only after risk review. [25-29]"
+    },
+    {
+      "heading": "Chronic lichenified / prurigo nodules",
+      "detail": "Intensify anti-inflammatory therapy, consider occlusion for limited plaques, and evaluate for systemic escalation if widespread [14]. Intralesional steroid is sometimes used for stubborn nodules under dermatology care. [11,14]"
+    }
+  ],
+  "drugRegimens": [
+    {
+      "drug": "Hydrocortisone 1% cream/ointment",
+      "indication": "Mild facial, flexural or infantile AD flares; short courses on sensitive sites [7,11].",
+      "initialDose": "Apply thinly once or twice daily to active areas using fingertip-unit guidance for 3–7 days initially.",
+      "titration": "If incomplete control on trunk/limbs, step up potency rather than endlessly extending mild TCS on thick plaques.",
+      "maintenanceDose": "After clearance, stop or move to proactive twice-weekly regimens on hotspots if flares recur rapidly.",
+      "termination": "Stop if infection supervenes until treated; discontinue if atrophy or allergy suspected.",
+      "alternatives": "Tacrolimus/pimecrolimus for sensitive sites; moderate TCS for body plaques.",
+      "adverseEffectManagement": "Irritation: switch vehicle. Infection: add antimicrobial plan. Educate against continuous unsupervised facial use. Provide written adverse-effect instructions at initiation and again at the first follow-up visit.",
+      "monitoring": "Review face/flexure sites within 1–2 weeks if severe; otherwise at routine follow-up. Document response with IGA/EASI or clear categorical descriptors at each review to justify continuation, step-down or switch [12,16].",
+      "genericKeys": [
+        "hydrocortisone"
+      ]
+    },
+    {
+      "drug": "Mometasone furoate 0.1% / betamethasone valerate 0.1% (moderate–potent TCS)",
+      "indication": "Moderate limb/trunk flares and lichenified AD outside face/folds [7,9].",
+      "initialDose": "Once daily to active plaques for typically 5–14 days depending on severity and thickness, using fingertip units.",
+      "titration": "Step down potency or frequency as soon as control allows; convert selected responders to twice-weekly proactive use.",
+      "maintenanceDose": "No indefinite daily maintenance at full potency; proactive twice-weekly or return to emollient-only between flares.",
+      "termination": "Stop earlier if marked atrophy, striae or secondary infection; reassess diagnosis if no response after adequate supervised use.",
+      "alternatives": "Higher or lower potency TCS by site; TCI for face; systemic options if widespread refractory.",
+      "adverseEffectManagement": "Atrophy risk: limit duration/occlusion. Infection: treat concurrently. Counsel steroid phobia with written limits. Provide written adverse-effect instructions at initiation and again at the first follow-up visit.",
+      "monitoring": "Reassess at 2 weeks for potency adjustment and adherence audit. Document response with IGA/EASI or clear categorical descriptors at each review to justify continuation, step-down or switch [12,16].",
+      "genericKeys": [
+        "mometasone",
+        "betamethasone"
+      ]
+    },
+    {
+      "drug": "Tacrolimus 0.03%/0.1% ointment",
+      "indication": "Sensitive-site AD and steroid-sparing proactive maintenance [11,21,22].",
+      "initialDose": "Thin layer twice daily to active face/flexural lesions until controlled; 0.03% commonly for younger children per label, 0.1% for adults/eligible older children.",
+      "titration": "Reduce to once daily then twice-weekly proactive application on previous hotspots.",
+      "maintenanceDose": "Proactive twice-weekly maintenance on healed sites plus daily emollient.",
+      "termination": "Stop on infected skin until cleared; discontinue for severe intolerance or allergic contact reaction.",
+      "alternatives": "Pimecrolimus 1%; mild TCS short courses; crisaborole where available.",
+      "adverseEffectManagement": "Initial burning: cool tube, short interruption, restart. Sun-behaviour advice. Avoid occlusive infected folds. Provide written adverse-effect instructions at initiation and again at the first follow-up visit.",
+      "monitoring": "Review at 2–6 weeks for control and tolerability. Document response with IGA/EASI or clear categorical descriptors at each review to justify continuation, step-down or switch [12,16].",
+      "genericKeys": [
+        "tacrolimus"
+      ]
+    },
+    {
+      "drug": "Crisaborole 2% ointment",
+      "indication": "Mild-to-moderate AD when nonsteroidal topical therapy is preferred and accessible [23].",
+      "initialDose": "Apply a thin layer twice daily to affected areas (licensed ages per local label, commonly ≥2 years).",
+      "titration": "Continue through clearance of target lesions; reassess at 4 weeks if response unclear.",
+      "maintenanceDose": "May be used intermittently for recurrent mild lesions alongside emollients.",
+      "termination": "Stop for intolerable application-site pain or allergic reaction; escalate therapy class if severity exceeds mild–moderate.",
+      "alternatives": "TCS/TCI; phototherapy or systemics for more severe disease.",
+      "adverseEffectManagement": "Application-site pain: trial limited area, emollient buffering strategies, or switch agents. Provide written adverse-effect instructions at initiation and again at the first follow-up visit.",
+      "monitoring": "Clinic review for IGAsuccess and tolerability; monitor adherence given cost. Document response with IGA/EASI or clear categorical descriptors at each review to justify continuation, step-down or switch [12,16].",
+      "genericKeys": [
+        "crisaborole"
+      ]
+    },
+    {
+      "drug": "Dupilumab (subcutaneous)",
+      "indication": "Moderate-to-severe AD refractory to topical optimisation; first-line advanced systemic in many pathways [10,24].",
+      "initialDose": "Adults: 600 mg loading dose subcutaneously, then 300 mg every 2 weeks; paediatric weight-based regimens per label.",
+      "titration": "No routine pharmacokinetic titration; adjust only per label/specialist advice for special populations.",
+      "maintenanceDose": "Continue every-2-week schedule while benefit outweighs risk; combine with emollients/topicals PRN.",
+      "termination": "Interrupt for serious hypersensitivity or per ophthalmology advice in refractory severe conjunctivitis; plan relapse bridge.",
+      "alternatives": "Oral JAKi; traditional immunosuppressants; phototherapy bridge.",
+      "adverseEffectManagement": "Conjunctivitis: lubricants + ophthalmology. Injection reactions: technique review. Avoid live vaccines during therapy per guidance. Provide written adverse-effect instructions at initiation and again at the first follow-up visit.",
+      "monitoring": "EASI/itch at 4–16 weeks; ocular symptom screen each visit; injection diary. Document response with IGA/EASI or clear categorical descriptors at each review to justify continuation, step-down or switch [12,16].",
+      "genericKeys": [
+        "dupilumab"
+      ]
+    },
+    {
+      "drug": "Upadacitinib / abrocitinib / baricitinib (oral JAKi)",
+      "indication": "Moderate-to-severe refractory AD with adequate monitoring capacity [25-29].",
+      "initialDose": "Use labelled adult doses (examples: upadacitinib 15–30 mg daily; abrocitinib 100–200 mg daily; baricitinib 2–4 mg daily) individualised to risk and approval.",
+      "titration": "Start lower when risk factors present; escalate only for incomplete response after adequate trial.",
+      "maintenanceDose": "Lowest effective continuous daily dose with topical foundation; temporary interruption for infection/labs.",
+      "termination": "Hold for serious infection, pregnancy, significant cytopenia/transaminitis, or VTE/MACE events; follow label restart rules.",
+      "alternatives": "Dupilumab; alternative JAKi; cyclosporine/methotrexate when advanced agents inaccessible.",
+      "adverseEffectManagement": "Zoster/infection: hold and treat. Lipid rises: diet/statins per risk. Counsel contraception. Drug interaction check. Provide written adverse-effect instructions at initiation and again at the first follow-up visit.",
+      "monitoring": "CBC/lipids/clinical review per label; EASI/itch response from week 4 onward. Document response with IGA/EASI or clear categorical descriptors at each review to justify continuation, step-down or switch [12,16].",
+      "genericKeys": [
+        "upadacitinib",
+        "abrocitinib",
+        "baricitinib"
+      ]
+    }
+  ],
+  "relapseRemission": [
+    "Remission means controlled itch and minimal inflammatory signs on an acceptable maintenance regimen, not lifelong zero emollient use [7,11]. Define personalised flare plans: escalate TCS for 3–7 days at first itch–scratch signs, then return to proactive therapy. [7,11]",
+    "Proactive twice-weekly TCS or TCI to previous hotspot sites reduces relapse versus reactive-only strategies in trials and guidelines [7,9,11]. Write the schedule on the prescription. [7,9,11]",
+    "Seasonal and exam-stress flares are predictable—pre-emptive emollient intensification helps [14]. Travel kits with emollient and a known TCS prevent emergency misuse of unknown creams. [14]",
+    "Loss of response to advanced therapy may reflect antidrug issues, adherence gaps, infection, or wrong diagnosis [10,24]. Audit before switching agents. [10,24]",
+    "After JAKi or immunosuppressant cessation, expect potential rebound—bridge with intensified topicals or phototherapy [10,29]. Plan exits deliberately. [10,29]",
+    "Recurrent identical facial flares suggest contact allergy, steroid misuse or demodex/rosacea overlap—re-examine rather than endlessly escalating [6,11]. [6,11]",
+    "After clear skin is achieved, keep a written maintenance card: daily emollient brand and amount, twice-weekly proactive agent and sites, flare TCS name/potency/maximum days, and red-flag infection symptoms that require same-day care [7,11,14]. Families who only restart therapy after sleepless nights recycle severe flares; early itch escalation prevents most full-blown episodes [7,14]. Review the card at every visit and update after any therapy class change. [7,11,14]"
+  ],
+  "patientEducation": [
+    "Atopic dermatitis is a chronic barrier and immune condition. It is not caused by poor hygiene, and it is not contagious [13,14].",
+    "Moisturise every day even when skin looks clear. After bathing, pat dry and apply emollient within minutes [7,20].",
+    "Steroid creams are safe when used on the right body site for the right number of days. Fear of all steroids leads to undertreatment and more scarring from scratching [7,11].",
+    "Use fingertip units: one fingertip of cream covers about two adult palm areas. Ask your clinician how many units for each body region [7].",
+    "Face and skin folds need milder steroids or tacrolimus/pimecrolimus; do not put ultra-potent steroid on eyelids for long periods [11,21].",
+    "Itch often improves before the skin looks perfect. Keep moisturising during recovery [14,20].",
+    "Do not start a strict multiple-food avoidance diet unless an allergy clinician confirms a food trigger—unnecessary diets can harm children [14,30].",
+    "Seek urgent care for fever, painful cold-sore-like punched holes in the skin, rapidly spreading redness, or eye pain [14,15].",
+    "If you are prescribed an injection (dupilumab) or JAK tablet, attend monitoring blood tests and report infection or unexplained breathlessness/leg swelling promptly [24-29].",
+    "In hot weather choose a lighter moisturiser for daytime so you actually use it; greasy ointment can be reserved for night [20].",
+    "Keep nails short, wear soft cotton, and avoid scrubbing with harsh antiseptic soaps that worsen dryness [7,14].",
+    "Pigment marks can linger after inflammation heals, especially on brown skin—this is common and usually improves slowly with good control [14].",
+    "Apply steroid only to active red itchy patches for the days prescribed, then return to moisturiser; some people also use a thin steroid or tacrolimus twice weekly on old hotspot areas to prevent the next flare [7,11].",
+    "If a new painful cold-sore pattern of holes appears on the face with fever, go to emergency care the same day—this can be eczema herpeticum and needs antiviral medicine quickly [14,15].",
+    "Dupilumab injections and JAK tablets are for moderate-to-severe disease after creams are optimised; they need follow-up for eye symptoms (dupilumab) or infection/blood tests (JAK tablets) [24-29]."
+  ],
+  "crossReferences": [
+    "Contact Dermatitis",
+    "Impetigo and Ecthyma",
+    "Scabies & Its Management",
+    "Asthma: Outpatient Management",
+    "Food Allergy: IgE-Mediated",
+    "Urticaria and Angioedema",
+    "Phototherapy in Dermatology",
+    "Cutaneous T-Cell Lymphoma"
+  ],
+  "backgroundInformation": [
+    {
+      "heading": "Definition and nomenclature",
+      "points": [
+        {
+          "text": "Atopic dermatitis and atopic eczema are synonymous in most guidelines; “eczema” alone is broader and should be qualified [9,13].",
+          "level": 0
+        },
+        {
+          "text": "Hanifin–Rajka (1980) provided classical major/minor diagnostic features still used worldwide [1].",
+          "level": 0
+        },
+        {
+          "text": "UK Working Party criteria offer a validated minimum discriminator set suitable for epidemiological and clinical standardisation [2-5].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Burden and natural history",
+      "points": [
+        {
+          "text": "AD is among the most common chronic skin diseases of childhood and a major cause of itch-related sleep loss [13,14].",
+          "level": 0
+        },
+        {
+          "text": "Trajectories include early-transient, early-persistent and adult-onset patterns [14].",
+          "level": 0
+        },
+        {
+          "text": "Economic burden includes medicines, lost work and informal caregiving—relevant when choosing advanced therapies in low-resource settings [14].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Guideline landscape",
+      "points": [
+        {
+          "text": "AAD 2014 modular guidelines cover diagnosis, topical therapy, and phototherapy/systemics [6-8].",
+          "level": 0
+        },
+        {
+          "text": "European EuroGuiDerm 2022 updates systemic and non-systemic recommendations including special populations [10,11].",
+          "level": 0
+        },
+        {
+          "text": "HOME initiative standardises outcome measurement for trials and increasingly informs clinic metrics [18,19].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Bangladesh practice notes",
+      "points": [
+        {
+          "text": "Humid heat, hard water variability, detergent washing of clothes, and crowded housing shape flare patterns [14].",
+          "level": 0
+        },
+        {
+          "text": "Potent combination steroid–antifungal–antibiotic creams sold over the counter are a common cause of misuse—explicitly ask and re-educate [7,11].",
+          "level": 0
+        },
+        {
+          "text": "Affordable plain emollients and correct TCS teaching deliver more population benefit than inaccessible biologics alone [7,20].",
+          "level": 0
+        }
+      ]
+    }
+  ],
+  "diagnosisSections": [
+    {
+      "heading": "Hanifin–Rajka clinical criteria",
+      "points": [
+        {
+          "text": "Major features include pruritus, typical morphology and distribution by age, chronic or chronically relapsing course, and personal or family history of atopy [1]. Require at least three major features plus three or more minor features in classical teaching. Minor features span xerosis, ichthyosis, IgE reactivity, hand/foot dermatitis, cheilitis, nipple eczema, susceptibility to cutaneous infection, and multiple others listed in the original paper. Use the framework to structure examination, but recognise imperfect specificity in isolation. [1,6]",
+          "level": 0
+        },
+        {
+          "text": "Document which major and minor features are present rather than stating “Hanifin positive” without detail. This improves communication at referral and when advanced therapy justification is audited. Revisit criteria if adult-onset disease looks atypical. Combine with severity scores for management, not diagnosis alone. [1,6]",
+          "level": 0
+        },
+        {
+          "text": "Hanifin–Rajka remains useful bedside teaching in Bangladesh clinics where research criteria may feel abstract. Pair with careful exclusion of scabies and tinea in itchy household clusters or annular plaques. Photographs help capture distribution for remote second opinions. Do not delay emollient therapy while debating minor-feature counts. [1,6,14]",
+          "level": 0
+        },
+        {
+          "text": "Limitations include cultural variation in “typical” distribution and under-recognised erythema in richly pigmented skin. Supplement with itch history, lichenification and pigment change. When immunodeficiency is possible, criteria satisfaction does not stop further work-up. Referral pathways should remain open for erythroderma and failure to thrive. [1,14,15]",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "UK Working Party diagnostic criteria",
+      "points": [
+        {
+          "text": "UKWP requires an itchy skin condition (or parental report of scratching/rubbing) as the entry criterion [2]. Add three or more of: history of flexural involvement; personal asthma/hay fever (or first-degree relative atopic history if child <4 years); history of generally dry skin in the last year; visible flexural eczema (or relevant infantile sites if <4); onset under age 2 (not used as a criterion if the child is under 4) [2,5]. Independent hospital and population validations support applicability [4,5]. State the exact count of fulfilled criteria in the record. [2-5]",
+          "level": 0
+        },
+        {
+          "text": "Observer variation studies informed which signs were retained as reliable discriminators [3]. Train clinicians to examine antecubital and popliteal fossae, neck and eyelids systematically. In infants, assess cheeks and outer limbs per age-adapted guidance. UKWP is especially helpful when standardising diagnoses across multiple clinic providers. [2,3]",
+          "level": 0
+        },
+        {
+          "text": "UKWP does not grade severity—pair with EASI/IGA after diagnosis [16,17]. Failure to meet UKWP should prompt differential diagnosis review rather than forced labelling. Borderline cases may still warrant barrier therapy while observation continues. Reapply criteria after treating confounding infection or contact dermatitis. [2,6,16]",
+          "level": 0
+        },
+        {
+          "text": "In research and registry work, UKWP improves phenotype purity for outcome tracking [5,18]. For advanced-therapy access paperwork, combining UKWP diagnosis with EASI thresholds is often persuasive. Explain to families that criteria formalise what clinicians already observe. Avoid implying that unmet research criteria means symptoms are imaginary. [2,5,18]",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Severity: EASI, IGA and HOME domains",
+      "points": [
+        {
+          "text": "EASI scores area and intensity of erythema, induration/papulation, excoriation and lichenification across head/neck, trunk, upper and lower limbs [16]. Reliability is established; severity strata help interpret absolute scores [16,17]. Practice EASI on real patients until scoring time is practical in clinic. Remember erythema weighting challenges in deeper skin tones—calibrate carefully. [16,17]",
+          "level": 0
+        },
+        {
+          "text": "IGA provides a quick overall severity anchor used in many trials and access pathways [17]. Align IGA language (clear to severe) across the clinical team. Do not escalate systemic therapy on a single subjective glance without documenting IGA/EASI. Capture patient-reported itch concurrently. [17-19]",
+          "level": 0
+        },
+        {
+          "text": "HOME recommends measuring clinician signs, patient symptoms, quality of life and long-term control [18,19]. Even in busy clinics, a one-question sleep/itch item plus IGA beats unstructured notes. For trial eligibility or registry care, follow HOME instruments when feasible. Reassess after each major therapy change. [18,19]",
+          "level": 0
+        },
+        {
+          "text": "Use scores to justify step-up and to detect non-response early [10,16]. Share numbers with patients to make progress visible and combat catastrophising. Photograph alongside scores when legal/consent frameworks allow. In telemedicine triage, structured itch/sleep questions partially substitute for full EASI. [10,16,19]",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Allergy testing and when to investigate further",
+      "points": [
+        {
+          "text": "Allergy tests follow a hypothesis from history—immediate urticaria/anaphylaxis to foods, or severe early AD with suspected food drivers [14,30]. Specific IgE or skin prick tests without history produce false positives and harmful diets. Oral food challenge under allergy supervision remains the reference for unclear cases. Coordinate with paediatric allergy services when available. [14,30]",
+          "level": 0
+        },
+        {
+          "text": "Patch testing evaluates contact allergens in chronic hand/face disease [6]. Include topical antibiotic/steroid vehicles and cosmetics relevant to the patient. Interpret relevance in the context of exposure. Negative patch tests do not exclude irritant dermatitis. [6]",
+          "level": 0
+        },
+        {
+          "text": "Consider immunodeficiency evaluation for recurrent deep infections, syndromic features or extreme erythroderma from infancy [15]. Basic blood counts and immunology referral beat reflexive systemic immunosuppression. Genetic testing pathways depend on local availability. Flag consanguinity and family infectious phenotypes. [15]",
+          "level": 0
+        },
+        {
+          "text": "Biopsy and imaging are selective tools for CTCL or alternative dermatoses [6,14]. Communicate differentials clearly on the pathology form. Repeat biopsy if clinical suspicion persists despite non-diagnostic histology. Meanwhile continue safe topical care. [6,14]",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Infection assessment before escalation",
+      "points": [
+        {
+          "text": "Inspect for honey crust, pustules, cellulitis and punched-out herpetic erosions at every flare visit [14,15]. Swab bacterial infection when recurrent or severe; use viral testing for suspected HSV. Document findings before starting systemic JAKi or intensifying immunosuppressants. Educate patients on red-flag photos of eczema herpeticum. [14,15]",
+          "level": 0
+        },
+        {
+          "text": "Distinguish colonisation from clinical infection to avoid antibiotic overuse [15]. Escalate antimicrobials when tenderness, fever or rapidly progressive erosions appear. Reassess AD therapy once infection is controlled—undertreated inflammation invites recolonisation. Household fomite advice is adjunctive, not primary. [14,15]",
+          "level": 0
+        },
+        {
+          "text": "Recurrent infection despite adherence should trigger resistance pattern review and immunodeficiency consideration [15]. Check for occult tinea or scabies as “infection mimics”. Stop unnecessary broad-spectrum antibiotic creams that breed resistance and contact allergy. Coordinate with microbiology in outbreak settings. [6,15]",
+          "level": 0
+        },
+        {
+          "text": "Before phototherapy or systemic therapy, certify that active disseminated infection is treated [8,10]. Record vaccination status when planning JAKi, including zoster risk discussion. Defer live vaccines per product guidance for dupilumab/JAKi. Keep an emergency action plan for febrile illness on systemic therapy. [8,10,29]",
+          "level": 0
+        }
+      ]
+    }
+  ],
+  "managementSections": [
+    {
+      "heading": "Emollients and daily barrier repair",
+      "points": [
+        {
+          "text": "Prescribe emollients as continuous foundational therapy for every severity tier, not as an optional cosmetic add-on [7,12,20]. Adults with widespread xerosis often need 250–500 g per week; children need weight- and area-adjusted quantities written explicitly on the prescription so pharmacists dispense enough. Demonstrate application to damp skin after lukewarm baths and again at least once more daily, including shins, forearms and other itch-prone zones even when temporarily clear. Fragrance-free ointments give longer occlusion; creams or lotions may be better tolerated in hot humid Bangladeshi daytime conditions—offer a two-vehicle plan if greasiness threatens adherence. Avoid mentholated or herbal OTC “eczema cures” with unknown irritants. If cost limits branded emollients, white soft paraffin or locally available bland substitutes are preferable to no moisturiser, provided the patient tolerates them and infection risk from shared jars is discussed. [7,11,20]",
+          "level": 0
+        },
+        {
+          "text": "Bathing guidance should be practical: once-daily short lukewarm water, gentle syndet cleansers instead of alkaline bar soap on inflamed skin, and immediate “soak and smear” emollient [7,12,20]. Towels should pat, not rub. For infants, limit soap to soiled areas and keep nails trimmed to reduce excoriation. Bleach baths are sometimes used for recurrent infection phenotypes under clinician direction; they are not universal first-line care and require precise dilution counselling to avoid chemical burns. Stop abrasive scrubbing and antiseptic overuse that strip lipids and worsen barrier failure. [7,14,20]",
+          "level": 0
+        },
+        {
+          "text": "Integrate trigger reduction without overwhelming families: switch to fragrance-free laundry detergent when feasible, rinse clothing well, choose breathable cotton, and cool the sleep environment to cut nocturnal itch [14]. Occupational wet-work patients need glove schedules and emollient breaks built into the workday. House dust mite covers may help selected sensitised patients but should not displace anti-inflammatory therapy. Write a one-page flare plan stating which emollient and which TCS to escalate at first itch. [7,14]",
+          "level": 0
+        },
+        {
+          "text": "Measure adherence by asking how many grams or tubes were finished since the last visit rather than yes/no questions [20]. Refill gaps often explain “steroid failure”. Involve grandparents and school caregivers in application teaching when they provide daytime care. Reassess vehicle if stinging occurs—switch from cream to ointment or vice versa and consider infection. Emollient stinging on cracked skin usually improves as fissures heal; temporary TCS may be needed to break the cycle. [7,12,20]",
+          "level": 0
+        },
+        {
+          "text": "In resource-limited clinics, prioritise uninterrupted emollient access through bulk prescribing, community pharmacy counselling and rejection of unnecessary steroid–antibiotic–antifungal combination creams for routine AD [7,11,20]. Track monthly emollient expenditure with the family to find sustainable products. Document language-specific instructions (Bangla/English) with simple body diagrams. Barrier repair success is judged by reduced itch frequency and slower flare cadence, not by a single perfect clinic day. [7,11,20]",
+          "level": 0
+        },
+        {
+          "text": "Quantify success as fewer nocturnal scratch episodes and longer intervals between flares, not as permanent zero dryness [7,12,20]. Re-prescribe before tubes run out—emollient interruptions are a leading cause of apparent topical failure in low-income households. Community pharmacists should be enlisted to reinforce fingertip-unit and post-bath application messages in Bangla when clinic time is short. Keep a spare travel-sized emollient in school bags for adolescents who otherwise skip daytime applications.",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Topical corticosteroid potency ladder",
+      "points": [
+        {
+          "text": "Match potency to site and acute severity: mild TCS for face, eyelids and intertriginous skin; moderate potency for truncal and limb flares; potent agents for thick lichenified plaques on trunks/limbs for short supervised bursts [7,9,11,12]. Ultra-potent agents are reserved for short courses on thick plaques under dermatology advice and avoided on face/folds. Express dosing in fingertip units with a maximum duration before review. Apply TCS after emollient has soaked in or as locally preferred sequence, once or twice daily during flares, then stop or step down when control returns. Never dispense unnamed “skin whitening” potent steroid creams for chronic facial use. [7,9,11,12]",
+          "level": 0
+        },
+        {
+          "text": "Proactive maintenance—applying a mid- or low-potency TCS or a TCI twice weekly to healed hotspot sites—reduces relapse compared with waiting for full flares [7,9,11,12]. Explain that proactive use is still medical treatment with a defined weekly rhythm, not continuous daily potent therapy. Combine with daily emollient on all days. If proactive therapy fails, look for infection, contact allergy or adherence gaps before escalating systemic care. [7,9,11,12]",
+          "level": 0
+        },
+        {
+          "text": "Counsel explicitly against steroid phobia using local analogies and written safety boundaries (sites, days, fingertip units) [7]. Equally counsel against potency escalation from pharmacy combination creams. Review for atrophy, striae and dyspigmentation at follow-up, especially in adolescents using facial products. Pregnant patients should still treat active disease with the lowest effective potency rather than enduring uncontrolled inflammation [11]. Document prior adverse effects so future prescribers do not reflexively withhold needed therapy. [7,11,12]",
+          "level": 0
+        },
+        {
+          "text": "If a seemingly adequate TCS course fails, perform a structured failure analysis: quantity used, body sites missed, early wash-off, ongoing irritant exposure, scabies/tinea, infection, and wrong diagnosis [6,7]. Increase potency or duration only after this audit. Occlusion can enhance effect on lichenified limbs but raises atrophy and infection risk—use selectively. Refer early when face-predominant disease requires steroid-sparing strategies. [6,7,11]",
+          "level": 0
+        },
+        {
+          "text": "Paediatric dosing requires caregiver demonstration and return demonstration in clinic [7,11,12]. Provide school letters when daytime application is needed. For Bengali families with multiple caregivers, appoint one person responsible for the evening “full emollient plus hotspot TCS” routine to avoid missed doses. Monitor growth only as clinically indicated; appropriate topical use is not equivalent to chronic systemic steroid exposure. Escalate to dermatology when infants require recurrent potent TCS. [7,11,12]",
+          "level": 0
+        },
+        {
+          "text": "AAD adult topical guidance emphasises shared decision-making on potency, vehicle and duration while discouraging unsafe prolonged high-potency facial exposure [7,12]. When patients arrive already using potent combination creams daily on the face, convert them to a written step-down: mild TCS or TCI for face, potent agent only for thick body plaques, and daily emollient everywhere [11,12]. Record the conversion plan so subsequent clinicians do not restart the harmful pattern.",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Topical calcineurin inhibitors and crisaborole",
+      "points": [
+        {
+          "text": "Tacrolimus ointment 0.03% (paediatric label ranges) and 0.1% (adults/older children) is applied thinly twice daily to active sensitive-site AD, then often twice weekly prophylactically [11,21,22]. It is particularly valuable for eyelids, face and flexures where continuous TCS risk is highest. Warn that burning or stinging is common in the first few days and usually settles; storing the tube cool and applying to less acutely raw skin can help. Do not use on frankly infected skin until infection is treated. Sun-behaviour counselling is prudent though photocarcinogenicity concerns have not translated into a clear real-world ban on indicated use. [11,21,22]",
+          "level": 0
+        },
+        {
+          "text": "Pimecrolimus 1% cream is an alternative for mild-to-moderate sensitive-site disease and for patients who dislike ointment vehicles [21,22]. Meta-analyses support efficacy versus vehicle with a steroid-sparing role. Cost and availability vary—do not leave facial AD untreated if only TCS mild agents are accessible. Avoid occlusive overuse on infected folds. Combine with emollients liberally. [21,22]",
+          "level": 0
+        },
+        {
+          "text": "Crisaborole 2% ointment twice daily showed significant Investigator Static Global Assessment success rates versus vehicle in children and adults with mild-to-moderate AD [23]. It offers a nonsteroidal option for patients refusing TCS or needing rotational therapy. Application-site pain is the main tolerability issue—set expectations and consider trial on limited areas first. Availability and price may limit Bangladesh use; mention it when accessible through import or tertiary pharmacies. It does not replace systemic therapy for severe disease. [23]",
+          "level": 0
+        },
+        {
+          "text": "Position TCI/crisaborole within the ladder: after or alongside emollients for sensitive sites, as steroid-sparing maintenance, and as alternatives when TCS side effects appear [11,21]. They are not emergency monotherapy for infected weeping erythroderma. Insurance/access paperwork should list prior TCS potency trials. Reassess at 2–6 weeks for sensitive-site control. [11,21,23]",
+          "level": 0
+        },
+        {
+          "text": "Safety monitoring is primarily clinical: irritation, infection, and rare allergic contact reactions to vehicles [21,22]. Discuss boxed-warning historical context honestly while emphasising current guideline support for appropriate use [11]. Avoid combining multiple irritating topicals on the same day when intolerance occurs. In pregnancy, limited-area TCI use is sometimes considered off-label after risk discussion—document consent [11]. Keep vaccinations up to date per national schedules unless a systemic agent imposes specific constraints. [11,21]",
+          "level": 0
+        },
+        {
+          "text": "Rotate TCI nights with emollient-only nights during proactive phases if burning limits nightly tacrolimus, rather than abandoning steroid-sparing care entirely [12,21]. For eyelid AD, prefer TCI over repeated potent TCS and document visual symptoms at each review [11,12]. If crisaborole stings, trial on a small limb plaque before facial use so patients are not lost to follow-up after a single painful application [23].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Phototherapy for widespread disease",
+      "points": [
+        {
+          "text": "Narrowband UVB is the preferred phototherapy modality for chronic widespread AD that remains burdensome despite optimised topical therapy and infection control [8,11]. Treatment is typically thrice weekly with incremental dosing under protocols that record skin type, previous UV exposure and concurrent photosensitisers. Continue emollients; use TCS judiciously for residual active plaques. Expected courses last weeks; judge response with EASI/itch rather than a single session’s erythema. Access barriers in Bangladesh should be documented when progressing to systemic drugs. [8,11]",
+          "level": 0
+        },
+        {
+          "text": "Exclude contraindications: genetic photosensitivity disorders, prior UV-driven skin cancers as relevant, uncontrolled photosensitising drug use, and inability to attend [8]. Screen for photoaggravated disease history. Provide eye protection and genital shielding per phototherapy unit standards. Pause for active eczema herpeticum or severe bacterial infection. Counsel about tanning and cumulative photocarcinogenesis in plain language. [8,14]",
+          "level": 0
+        },
+        {
+          "text": "PUVA and other wavelengths are specialist options when NB-UVB fails or is unsuitable [8]. They demand stricter eye care and longer phototoxicity awareness. Do not improvise home UV devices—unregulated lamps cause burns and undertreat flexures. Combine phototherapy with behavioural itch strategies and sleep care. If logistics make phototherapy impossible, move efficiently to systemic shared decision-making rather than endless failed topical cycles. [8,11]",
+          "level": 0
+        },
+        {
+          "text": "Monitor cumulative dose, erythema grade and herpes labialis flares [8]. Adjust missed-session doses using unit protocols. Phototherapy is a bridge or maintenance tool for some adults with seasonal disease, not necessarily lifelong. Maintain topical foundation on non-UV days. Discharge planning should include a post-course proactive topical regimen to lock in gains. [8,11]",
+          "level": 0
+        },
+        {
+          "text": "In shared care, the phototherapy nurse/technician team needs a clear AD diagnosis letter listing infection history and current topicals [8]. Primary clinicians should still manage flares between sessions. Document why phototherapy was chosen over immediate biologic/JAKi—usually access, preference or bridging. Failure after a completed adequate course strengthens the case for advanced systemic therapy. Success should be celebrated with a written maintenance plan to avoid rapid relapse. [8,10,11]",
+          "level": 0
+        },
+        {
+          "text": "When NB-UVB waiting lists are long, intensify proactive topical regimens and infection control rather than leaving patients untreated for months [8,11,12]. Provide interim written escalation doses of TCS for flares while awaiting the first phototherapy slot. If patients live far from phototherapy centres, document travel burden as a legitimate reason to discuss systemic advanced therapy earlier [10].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Dupilumab and targeted biologic care",
+      "points": [
+        {
+          "text": "Dupilumab is a first-line advanced systemic option for moderate-to-severe AD inadequately controlled with topical therapy, supported by pivotal SOLO phase 3 evidence of improved IGA and EASI versus placebo [10,24]. Adult dosing commonly uses a 600 mg subcutaneous loading dose then 300 mg every 2 weeks; paediatric dosing is weight-based per label. Continue emollients and allow topical anti-inflammatories for residual lesions. Assess baseline EASI, itch and comorbidities (asthma, rhinitis) that may also benefit. Confirm cold-chain logistics before the first prescription. [10,24]",
+          "level": 0
+        },
+        {
+          "text": "Counsel on conjunctivitis and ocular surface disease, injection-site reactions, eosinophilia laboratory patterns, and vaccine constraints (avoid live vaccines during treatment per guidance) [10,24]. Provide lubricating eye drops advice and ophthalmology pathways. Most cutaneous responses begin within weeks, with progressive clearance thereafter. Do not declare failure before an adequate exposure period unless toxicity intervenes. Missed doses should be rescheduled per label rather than double-dosed informally. [10,24]",
+          "level": 0
+        },
+        {
+          "text": "Position dupilumab after documented topical optimisation—and phototherapy when feasible—unless disease severity or access pathways justify earlier use [10,11]. In Bangladesh, charity/import programmes may be required; ensure diagnosis and severity paperwork is audit-ready with EASI photographs. Screen for active helminth infection risk in endemic areas per clinical judgement before type-2 blockade. Coordinate asthma biologics if already in use to avoid unplanned duplication. [10,14,24]",
+          "level": 0
+        },
+        {
+          "text": "Monitor response at regular intervals with EASI/IGA and ocular symptom review [10,16]. Partial responders may need adherence checks, infection treatment, contact-allergy evaluation or adjunct phototherapy rather than immediate switching. Complete non-response prompts specialist switch planning to JAKi or alternative biologics where available. Plan pregnancy discussions in advance of conception. [10,11,24]",
+          "level": 0
+        },
+        {
+          "text": "Stopping rules should be proactive: serious hypersensitivity, uncontrolled severe conjunctivitis despite ophthalmology care, or sustained clear skin with a negotiated step-down in highly selected cases under specialist oversight [10]. Abrupt cessation may allow relapse—bridge with intensified topicals. Document batch and administration dates for pharmacovigilance. Patient support nursing improves persistence. [10,24]",
+          "level": 0
+        },
+        {
+          "text": "Before first injection, teach refrigerator storage, travel with cool packs, and what to do if a dose is missed by one or several days per label instructions [10,24]. Schedule an early nurse or clinician check after the loading dose to catch technique errors and ocular symptoms. Keep topical therapy active—dupilumab is not a reason to stop emollients [12,24].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Oral JAK inhibitors for severe refractory AD",
+      "points": [
+        {
+          "text": "Upadacitinib and abrocitinib (JAK1-selective) and baricitinib (JAK1/2) achieve rapid itch relief and high skin-clearance rates in phase 3 programmes for moderate-to-severe AD [25-29]. Choose agent and dose by age licensing, renal function, cardiovascular/VTE risk, infection history, drug interactions and cost. Typical adult labelled ranges include upadacitinib 15–30 mg daily, abrocitinib 100–200 mg daily and baricitinib 2–4 mg daily. Always combine with ongoing emollient/TCS foundation. Obtain baseline CBC, lipids, liver tests and infection screening appropriate to local protocols (TB/hepatitis as indicated). [10,25-29]",
+          "level": 0
+        },
+        {
+          "text": "Pre-treatment counselling must cover herpes zoster risk, serious infection, cytopenias, lipid rises, MACE/VTE warnings, malignancy uncertainty, embryotoxicity and the need for reliable contraception [29]. Vaccinate for zoster when feasible before starting. Advise urgent care for febrile illness, shingles, chest pain, dyspnoea or limb swelling. Avoid initiating during active serious infection or eczema herpeticum. Review interacting drugs (e.g., strong CYP inhibitors for some agents). [10,29]",
+          "level": 0
+        },
+        {
+          "text": "Start at the lowest effective labelled dose when risk factors are present; escalate only if control is incomplete after an adequate trial [26-28]. Reassess EASI and itch at 4–16 weeks. Interrupt for serious infection or significant laboratory toxicity and restart only after structured review. Bridge flares with topicals rather than unsupervised dose stacking. Document shared decision-making, especially when shifting from dupilumab for speed of itch control or vice versa for comorbidity reasons. [26-29]",
+          "level": 0
+        },
+        {
+          "text": "In resource-limited contexts, JAKi may occasionally be more logistically feasible than cold-chain biologics but laboratory monitoring and infection risk remain non-negotiable [10,29]. Do not use informal veterinary or unregulated JAK products. If only intermittent drug supply exists, prefer stable topical/phototherapy strategies over unsafe start–stop JAKi cycles. National pharmacovigilance reporting should be encouraged. Coordinate care with medicine and ophthalmology as comorbidity dictates. [10,29]",
+          "level": 0
+        },
+        {
+          "text": "Compare pathways transparently: dupilumab may suit patients with conjunctival resilience and injectable preference; JAKi may suit those needing rapid itch control who accept oral dosing and lab monitoring [10,24,29]. Prior failure of one advanced class does not forbid the other after washout/timing per specialist advice. Traditional immunosuppressants remain backups when neither is affordable [8-10]. Revisit goals every visit—clear skin, sleep, work and steroid-sparing. [8,10,24,29]",
+          "level": 0
+        },
+        {
+          "text": "Provide a wallet card listing the JAK agent, dose, and infection/VTE red flags for emergency clinicians unfamiliar with dermatologic JAKi use [29]. Align laboratory draw dates with refill dates to reduce silent continuation without monitoring. If drug supply is intermittent, plan an intentional stop with topical bridging instead of erratic dosing that obscures efficacy and safety signals [10,29].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Infection, special sites and Bangladesh-ready escalation discipline",
+      "points": [
+        {
+          "text": "Treat clinically infected AD concurrently with antimicrobials selected for likely S. aureus/streptococci and local resistance, while continuing barrier care and cautious anti-inflammatory therapy once infection is addressed [14,15]. Swab recurrent, severe or institutional cases. Reserve systemic antibiotics for extensive infection, fever or failed topical antimicrobial strategies. Never launch JAKi/biologic therapy during uncontrolled invasive infection. Educate households not to share potent steroid creams during infection. [14,15]",
+          "level": 0
+        },
+        {
+          "text": "Eczema herpeticum requires immediate systemic antiviral therapy and often admission; look for monomorphic punched-out erosions and pain out of proportion [14,15]. Stop or hold immunosuppressive systemics. Involve ophthalmology for periocular disease. After recovery, redesign the AD plan to prevent the next severe flare—usually intensifying maintenance topicals or advancing disease-control therapy once safe. Document the episode prominently in the record. [14,15]",
+          "level": 0
+        },
+        {
+          "text": "Hand, eyelid and genital AD need specialised vehicle and potency choices, plus contact-allergy thinking [6,11]. Night-time cotton gloves over emollient can help hand fissures. Eyelid disease favours TCI or mild TCS for very short courses. Occupational rehabilitation may be as important as pharmacology for hand disease. Avoid lidocaine/antibiotic cocktail creams that sensitise. [6,11,14]",
+          "level": 0
+        },
+        {
+          "text": "Pregnancy pathways emphasise emollients, appropriate TCS, and early dermatology involvement before unplanned systemic exposure [11]. Discuss contraception before JAKi. Breastfeeding plans should consider product-specific data and topical nipple precautions. Uncontrolled severe AD itself threatens sleep, infection and mental health in pregnancy—treatment nihilism is not safer. Coordinate obstetric care in writing. [10,11]",
+          "level": 0
+        },
+        {
+          "text": "Bangladesh escalation discipline: (1) emollient quantity confirmed, (2) site-correct TCS/TCI used, (3) infection/scabies/tinea excluded, (4) phototherapy considered if accessible, (5) systemic traditional or advanced agents only with monitoring capacity [7,8,10,11,20]. This sequence prevents mislabelling patients as biologic-refractory when basics were never delivered. Write the sequence in the notes for continuity across clinics. Advocate for formulary inclusion of essential emollients and TCS as public-health dermatology. [7,10,11,20]",
+          "level": 0
+        },
+        {
+          "text": "For weeping facial flares, photograph before antibiotics when feasible, start antimicrobials promptly if bacterial infection is clear, and restore TCI/mild TCS as soon as crusting settles to prevent rebound lichenification [12,14,15]. Ask every new patient which pharmacy cream they last bought—names often reveal clobetasol combination misuse. Escalate systemic therapy only with a completed checklist uploaded or pasted into the chart [7,10,12].",
+          "level": 0
+        }
+      ]
+    }
+  ],
+  "complicationSections": [
+    {
+      "heading": "Infectious complications",
+      "points": [
+        {
+          "text": "Bacterial impetigo and cellulitis complicate excoriated AD; treat with targeted antimicrobials and maintain barrier repair [14,15].",
+          "level": 0
+        },
+        {
+          "text": "Eczema herpeticum is a dermatologic emergency requiring systemic antivirals and immunosuppression hold [14,15].",
+          "level": 0
+        },
+        {
+          "text": "Recurrent deep infections warrant immunodeficiency evaluation before further escalation [15].",
+          "level": 0
+        },
+        {
+          "text": "Colonisation without clinical infection does not justify chronic systemic antibiotics [15].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Treatment-related injury",
+      "points": [
+        {
+          "text": "Prolonged potent facial TCS causes atrophy, telangiectasia and dependency patterns—redirect to TCI and proactive plans [7,11].",
+          "level": 0
+        },
+        {
+          "text": "TCI burning is usually early and transient; counsel to prevent abandonment [21].",
+          "level": 0
+        },
+        {
+          "text": "JAKi and classical immunosuppressants demand laboratory and infection vigilance [8,29].",
+          "level": 0
+        },
+        {
+          "text": "Unregulated combination creams are a major local harm pathway—ask and replace [7,11].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Ocular and pigmentary morbidity",
+      "points": [
+        {
+          "text": "Chronic periocular AD and steroid exposure threaten eyes; prefer TCI and ophthalmology co-management [11,14].",
+          "level": 0
+        },
+        {
+          "text": "Dupilumab ocular surface disease is manageable with early eye care [24].",
+          "level": 0
+        },
+        {
+          "text": "Post-inflammatory dyspigmentation needs prevention via earlier control and avoidance of toxic bleaching [14].",
+          "level": 0
+        },
+        {
+          "text": "Counsel that pigment lag does not equal treatment failure if itch and eczema are controlled [14].",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "heading": "Psychosocial and functional decline",
+      "points": [
+        {
+          "text": "Sleep loss, stigma and depression require explicit screening and often improve with disease control [14].",
+          "level": 0
+        },
+        {
+          "text": "School/work letters and occupational adjustments are legitimate therapies [14].",
+          "level": 0
+        },
+        {
+          "text": "Adolescent engagement prevents covert non-adherence [14].",
+          "level": 0
+        },
+        {
+          "text": "Severe impairment despite clear skin should redirect to mental-health pathways [14].",
+          "level": 0
+        }
+      ]
+    }
+  ],
+  "prognosisQuantitative": [
+    {
+      "outcome": "EASI reliability",
+      "estimate": "EASI shows high inter- and intra-rater reliability for clinician-reported AD signs across body regions, supporting its use for baseline and follow-up severity tracking.",
+      "source": "Hanifin et al. Experimental Dermatology",
+      "doi": "https://doi.org/10.1034/j.1600-0625.2001.100102.x"
+    },
+    {
+      "outcome": "EASI severity strata",
+      "estimate": "Validated banding of EASI (and related scores) into clear/mild/moderate/severe strata improves interpretability of absolute score changes in clinic and trials.",
+      "source": "Chopra et al. British Journal of Dermatology",
+      "doi": "https://doi.org/10.1111/bjd.15641"
+    },
+    {
+      "outcome": "Emollient evidence base",
+      "estimate": "Cochrane synthesis supports moisturisers for improving eczema severity and reducing flares, with product choice guided by tolerability and adherence.",
+      "source": "van Zuuren et al. Cochrane Review",
+      "doi": "https://doi.org/10.1002/14651858.CD012119.pub2"
+    },
+    {
+      "outcome": "TCI comparative efficacy",
+      "estimate": "Meta-analysis of randomised trials shows topical tacrolimus and pimecrolimus superior to vehicle for AD, informing steroid-sparing sensitive-site regimens.",
+      "source": "Ashcroft et al. BMJ",
+      "doi": "https://doi.org/10.1136/bmj.38376.439653.d3"
+    },
+    {
+      "outcome": "Crisaborole ISGA success",
+      "estimate": "Phase 3 trials demonstrated significantly higher rates of Investigator Static Global Assessment clear/almost clear with crisaborole 2% versus vehicle in mild-to-moderate AD.",
+      "source": "Paller et al. JAAD",
+      "doi": "https://doi.org/10.1016/j.jaad.2016.05.046"
+    },
+    {
+      "outcome": "Dupilumab SOLO IGA response",
+      "estimate": "In SOLO 1 and SOLO 2, dupilumab significantly increased the proportion of adults achieving IGA 0/1 with ≥2-point improvement versus placebo at 16 weeks.",
+      "source": "Simpson et al. NEJM",
+      "doi": "https://doi.org/10.1056/NEJMoa1610020"
+    },
+    {
+      "outcome": "Upadacitinib Measure Up clearance",
+      "estimate": "Measure Up 1 and 2 showed once-daily upadacitinib achieved superior EASI-75 and validated IGA responses versus placebo in adolescents and adults with moderate-to-severe AD.",
+      "source": "Guttman-Yassky et al. Lancet",
+      "doi": "https://doi.org/10.1016/s0140-6736(21)00588-2"
+    },
+    {
+      "outcome": "Abrocitinib JADE MONO-1",
+      "estimate": "JADE MONO-1 demonstrated significant improvements in IGA and EASI-75 with abrocitinib versus placebo in adolescents and adults with moderate-to-severe AD.",
+      "source": "Simpson et al. Lancet",
+      "doi": "https://doi.org/10.1016/s0140-6736(20)30732-7"
+    },
+    {
+      "outcome": "Baricitinib topical-refractory disease",
+      "estimate": "Phase 3 monotherapy trials showed baricitinib improved validated severity endpoints versus placebo in patients with inadequate response to topical corticosteroids.",
+      "source": "Simpson et al. British Journal of Dermatology",
+      "doi": "https://doi.org/10.1111/bjd.18898"
+    },
+    {
+      "outcome": "UKWP population validation",
+      "estimate": "UK Working Party criteria retain useful positive predictive value for AD in population settings when the itchy-skin entry criterion plus discriminators are applied.",
+      "source": "Williams et al. British Journal of Dermatology",
+      "doi": "https://doi.org/10.1111/j.1365-2133.1996.tb03599.x"
+    },
+    {
+      "outcome": "EuroGuiDerm systemic framework",
+      "estimate": "EuroGuiDerm 2022 Part I provides graded recommendations positioning biologics and JAKi within systemic pathways for moderate-to-severe atopic eczema.",
+      "source": "Wollenberg et al. JEADV",
+      "doi": "https://doi.org/10.1111/jdv.18345"
+    },
+    {
+      "outcome": "Adult disease persistence context",
+      "estimate": "Contemporary Lancet reviews emphasise substantial adult burden and heterogeneous persistence trajectories, justifying long-term treat-to-control strategies rather than assumption of universal childhood resolution.",
+      "source": "Langan, Irvine, Weidinger Lancet",
+      "doi": "https://doi.org/10.1016/s0140-6736(20)31286-1"
+    }
+  ],
+  "preciseDosing": [
+    {
+      "drug": "Tacrolimus 0.1% ointment (adults)",
+      "indication": "Facial/flexural AD and proactive steroid-sparing maintenance [11,21].",
+      "standardDose": "Apply a thin layer twice daily to active lesions until controlled, then consider twice-weekly proactive application to previous hotspots.",
+      "doseReductionCriteria": "Use 0.03% strength in younger children per label; reduce frequency if burning persists beyond early days after vehicle/technique advice.",
+      "renalAdjustment": "None for topical use.",
+      "hepaticAdjustment": "None for topical use.",
+      "administration": "Apply to clean dry skin on face/folds; avoid occlusive infected areas; continue daily emollients on surrounding skin; wash hands after non-facial application.",
+      "onsetOffset": "Stinging may occur at first applications; anti-inflammatory benefit typically builds over days to 2 weeks, with proactive use reducing subsequent flares."
+    },
+    {
+      "drug": "Dupilumab adult regimen",
+      "indication": "Moderate-to-severe AD inadequately controlled by topicals [10,24].",
+      "standardDose": "600 mg subcutaneous loading dose (usually two 300 mg injections), then 300 mg every 2 weeks.",
+      "doseReductionCriteria": "Paediatric patients use weight-based labelled dosing rather than adult empiric reduction; hold for serious hypersensitivity pending specialist review.",
+      "renalAdjustment": "No routine renal dose adjustment for standard AD dosing; assess overall infection risk in renal disease.",
+      "hepaticAdjustment": "No routine hepatic dose adjustment; review if severe hepatic impairment coexists with other risks.",
+      "administration": "Subcutaneous thigh/abdomen/upper arm rotation; train patient/caregiver; maintain cold chain; continue emollients and PRN topicals.",
+      "onsetOffset": "Itch often improves within 2–4 weeks; maximal cutaneous responses continue accruing through 16 weeks in pivotal trials."
+    },
+    {
+      "drug": "Upadacitinib oral",
+      "indication": "Refractory moderate-to-severe AD with monitoring capacity [26,29].",
+      "standardDose": "15 mg orally once daily, considering 30 mg daily for inadequate response in eligible adults per label and risk assessment.",
+      "doseReductionCriteria": "Prefer 15 mg with age, infection, cardiovascular or laboratory risk factors; avoid initiation in active serious infection or pregnancy.",
+      "renalAdjustment": "Follow label for severe renal impairment (dose restriction/avoidance as specified by jurisdiction).",
+      "hepaticAdjustment": "Follow label; often avoid in severe hepatic impairment.",
+      "administration": "Once daily with or without food per label; adhere to laboratory monitoring schedule; combine with topical foundation therapy.",
+      "onsetOffset": "Itch relief may begin within days; evaluate formal EASI/IGA response by 4–16 weeks while watching for infection and lab toxicity."
+    },
+    {
+      "drug": "Betamethasone valerate 0.1% cream/ointment",
+      "indication": "Short-course control of moderate body AD flares excluding face/folds [7,9].",
+      "standardDose": "Apply thinly once daily to active trunk/limb plaques using fingertip units for 5–14 days, then step down or convert to proactive twice-weekly use if appropriate.",
+      "doseReductionCriteria": "Shorten course on thinner skin or if early clearance occurs; never use as chronic daily facial therapy.",
+      "renalAdjustment": "None for appropriate topical use.",
+      "hepaticAdjustment": "None for appropriate topical use.",
+      "administration": "After emollient absorption or per local sequence preference; avoid occlusion unless specialist-directed; keep away from eyes and genitals.",
+      "onsetOffset": "Inflammation and itch often improve within several days; lichenification resolves more slowly over weeks with maintenance barrier care."
+    }
+  ]
+}

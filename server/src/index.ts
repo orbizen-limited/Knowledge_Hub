@@ -12,6 +12,7 @@ import { resolvers } from './graphql/resolvers.js';
 import { fieldCountLimit } from './graphql/complexityRule.js';
 import { apiKeyAuth } from './middleware/apiKeyAuth.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { internalRouter } from './routes/internal.js';
 import { logger } from './utils/logger.js';
 import { pool } from './db/pool.js';
 
@@ -60,6 +61,8 @@ async function main() {
     express.json({ limit: '1mb' }),
     expressMiddleware(apollo),
   );
+
+  app.use('/internal', internalRouter);
 
   app.use(errorHandler);
 

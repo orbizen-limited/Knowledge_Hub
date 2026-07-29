@@ -13,6 +13,7 @@
     "start": "node dist/index.js",
     "migrate": "tsx src/db/migrate.ts",
     "ingest": "tsx scripts/ingest.ts",
+    "ingest:catalog": "tsx scripts/ingest-catalog.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ import {
   listTopics,
   searchTopics,
   chapterSpecialtyCounts,
+  statsBySpecialty,
 } from '../services/topicRepository.js';
 
 interface TopicsArgs {
@@ -12,6 +13,8 @@ interface TopicsArgs {
   chapter?: string;
   tier?: string;
   careSetting?: string;
+  status?: string;
+  search?: string;
   limit: number;
   offset: number;
 }
@@ -25,13 +28,15 @@ export const resolvers = {
     async topics(_: unknown, args: TopicsArgs) {
       const limit = Math.min(Math.max(args.limit ?? 20, 1), 100);
       const offset = Math.max(args.offset ?? 0, 0);
-      const key = `topics:${args.specialty ?? ''}:${args.chapter ?? ''}:${args.tier ?? ''}:${args.careSetting ?? ''}:${limit}:${offset}`;
+      const key = `topics:${args.specialty ?? ''}:${args.chapter ?? ''}:${args.tier ?? ''}:${args.careSetting ?? ''}:${args.status ?? ''}:${args.search ?? ''}:${limit}:${offset}`;
       return cached(key, () =>
         listTopics({
           specialty: args.specialty,
           chapter: args.chapter,
           tier: args.tier,
           careSetting: args.careSetting,
+          status: args.status,
+          search: args.search,
           limit,
           offset,
         }),
@@ -62,6 +67,10 @@ export const resolvers = {
           totalCount: specialties.reduce((sum, s) => sum + s.count, 0),
         }));
       });
+    },
+
+    async stats() {
+      return cached('stats', () => statsBySpecialty());
     },
 
     async health() {

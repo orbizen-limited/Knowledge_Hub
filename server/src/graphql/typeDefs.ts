@@ -147,6 +147,24 @@ export const typeDefs = `#graphql
     topicCount: Int!
   }
 
+  type SpecialtyStats {
+    specialty: String!
+    total: Int!
+    enriched: Int!
+    stub: Int!
+    pendingReview: Int!
+    rejected: Int!
+  }
+
+  type KnowledgeHubStats {
+    total: Int!
+    enriched: Int!
+    stub: Int!
+    pendingReview: Int!
+    rejected: Int!
+    bySpecialty: [SpecialtyStats!]!
+  }
+
   type Query {
     topic(topicId: ID!): Topic
     topics(
@@ -154,11 +172,14 @@ export const typeDefs = `#graphql
       chapter: String
       tier: String
       careSetting: String
+      status: String
+      search: String
       limit: Int = 20
       offset: Int = 0
     ): TopicConnection!
     search(query: String!, limit: Int = 20): [SearchResult!]!
     chapters: [ChapterSummary!]!
+    stats: KnowledgeHubStats!
     health: HealthStatus!
   }
 `;

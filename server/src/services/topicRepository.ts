@@ -90,6 +90,8 @@ export interface ListTopicsOptions {
   chapter?: string;
   tier?: string;
   careSetting?: string;
+  status?: string;
+  search?: string;
   limit: number;
   offset: number;
 }
@@ -113,6 +115,19 @@ export async function listTopics(opts: ListTopicsOptions) {
   if (opts.careSetting) {
     params.push(opts.careSetting);
     conditions.push(`$${params.length} = ANY(care_settings)`);
+  }
+  if (opts.status === 'stub') {
+    conditions.push('content_version = 0');
+  } else if (opts.status === 'enriched') {
+    conditions.push(`(content_version > 0 AND review_status = 'approved')`);
+  } else if (opts.status === 'pending_review') {
+    conditions.push(`review_status IN ('pending_clinician_check', 'pending_board_review')`);
+  } else if (opts.status === 'rejected') {
+    conditions.push(`review_status = 'rejected'`);
+  }
+  if (opts.search) {
+    params.push(opts.search);
+    conditions.push(`title ILIKE '%' || $${params.length} || '%'`);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -163,4 +178,116 @@ export async function chapterSpecialtyCounts(): Promise<ChapterRow[]> {
      ORDER BY chapter, specialty`,
   );
   return rows;
+}
+
+export interface SpecialtyStats {
+  specialty: string;
+  total: number;
+  enriched: number;
+  stub: number;
+  pendingReview: number;
+  rejected: number;
+}
+
+export interface KnowledgeHubStats {
+  total: number;
+  enriched: number;
+  stub: number;
+  pendingReview: number;
+  rejected: number;
+  bySpecialty: SpecialtyStats[];
+}
+
+interface StatsRow {
+  specialty: string;
+  total: string;
+  enriched: string;
+  stub: string;
+  pending_review: string;
+  rejected: string;
+}
+
+export async function statsBySpecialty(): Promise<KnowledgeHubStats> {
+  const { rows } = await pool.query<StatsRow>(
+    `SELECT specialty,
+            COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE content_version > 0 AND review_status = 'approved') AS enriched,
+            COUNT(*) FILTER (WHERE content_version = 0) AS stub,
+            COUNT(*) FILTER (WHERE review_status IN ('pending_clinician_check', 'pending_board_review')) AS pending_review,
+            COUNT(*) FILTER (WHERE review_status = 'rejected') AS rejected
+     FROM topics
+     GROUP BY specialty
+     ORDER BY specialty`,
+  );
+
+  const bySpecialty: SpecialtyStats[] = rows.map((row) => ({
+    specialty: row.specialty,
+    total: Number(row.total),
+    enriched: Number(row.enriched),
+    stub: Number(row.stub),
+    pendingReview: Number(row.pending_review),
+    rejected: Number(row.rejected),
+  }));
+
+  return {
+    total: bySpecialty.reduce((sum, s) => sum + s.total, 0),
+    enriched: bySpecialty.reduce((sum, s) => sum + s.enriched, 0),
+    stub: bySpecialty.reduce((sum, s) => sum + s.stub, 0),
+    pendingReview: bySpecialty.reduce((sum, s) => sum + s.pendingReview, 0),
+    rejected: bySpecialty.reduce((sum, s) => sum + s.rejected, 0),
+    bySpecialty,
+  };
+}
+
+export async function updateReviewStatus(
+  topicId: string,
+  reviewStatus: string,
+  reviewedBy: string,
+) {
+  const { rows } = await pool.query<TopicRow>(
+    `UPDATE topics
+     SET review_status = $2, reviewed_by = $3, reviewed_at = now(), updated_at = now()
+     WHERE topic_id = $1
+     RETURNING *`,
+    [topicId, reviewStatus, reviewedBy],
+  );
+  return rows[0] ? rowToTopic(rows[0]) : null;
+}
+
+export interface CatalogStub {
+  topicId: string;
+  title: string;
+  specialty: string;
+  chapter: string;
+  tier?: string;
+}
+
+const TIERS = ['tier1', 'tier2', 'tier3'];
+
+export async function insertCatalogStubs(
+  stubs: CatalogStub[],
+): Promise<{ inserted: number; skipped: number }> {
+  if (!stubs.length) return { inserted: 0, skipped: 0 };
+
+  const result = await pool.query(
+    `INSERT INTO topics (
+       topic_id, title, specialty, chapter, tier,
+       content_version, review_status, content, source_file
+     )
+     SELECT t.topic_id, t.title, t.specialty, t.chapter, t.tier,
+            0, 'approved', '{}'::jsonb, 'catalog'
+     FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::text[])
+       AS t(topic_id, title, specialty, chapter, tier)
+     ON CONFLICT (topic_id) DO NOTHING`,
+    [
+      stubs.map((s) => s.topicId),
+      stubs.map((s) => s.title),
+      stubs.map((s) => s.specialty ?? ''),
+      stubs.map((s) => s.chapter ?? ''),
+      stubs.map((s) => (s.tier && TIERS.includes(s.tier) ? s.tier : 'tier2')),
+    ],
+  );
+
+  const inserted = result.rowCount ?? 0;
+  return { inserted, skipped: stubs.length - inserted };
 }
