@@ -42,6 +42,86 @@ CROSSREF_MAILTO = os.environ.get("KH_WORKER_CROSSREF_MAILTO", "dev@doctorshero.c
 USER_AGENT = f"DoctorsHero-KH-Worker/1.0 (+https://doctorshero.com; mailto:{CROSSREF_MAILTO})"
 MAX_REPAIR_PASSES = int(os.environ.get("KH_WORKER_MAX_REPAIR_PASSES", "3") or "3")
 
+# Gemini 2.5 Flash list prices (USD / 1M tokens) — overridable via env.
+INPUT_USD_PER_M = float(os.environ.get("KH_WORKER_GEMINI_INPUT_USD_PER_M", "0.15") or "0.15")
+OUTPUT_USD_PER_M = float(os.environ.get("KH_WORKER_GEMINI_OUTPUT_USD_PER_M", "0.60") or "0.60")
+
+
+class UsageTracker:
+    """Accumulate Gemini token usage for one enrichment job."""
+
+    def __init__(self) -> None:
+        self.prompt_tokens = 0
+        self.output_tokens = 0
+        self.total_tokens = 0
+        self.calls = 0
+
+    def add(self, usage: dict | None) -> None:
+        if not usage:
+            return
+        prompt = int(usage.get("promptTokenCount") or usage.get("prompt_tokens") or 0)
+        output = int(usage.get("candidatesTokenCount") or usage.get("output_tokens") or 0)
+        total = int(usage.get("totalTokenCount") or (prompt + output))
+        self.prompt_tokens += prompt
+        self.output_tokens += output
+        self.total_tokens += total
+        self.calls += 1
+
+    @property
+    def cost_usd(self) -> float:
+        return round(
+            (self.prompt_tokens / 1_000_000.0) * INPUT_USD_PER_M
+            + (self.output_tokens / 1_000_000.0) * OUTPUT_USD_PER_M,
+            6,
+        )
+
+    def as_dict(self) -> dict:
+        return {
+            "prompt_tokens": self.prompt_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": self.total_tokens,
+            "gemini_calls": self.calls,
+            "cost_usd": self.cost_usd,
+            "model": GEMINI_MODEL,
+            "pricing": {
+                "input_usd_per_million": INPUT_USD_PER_M,
+                "output_usd_per_million": OUTPUT_USD_PER_M,
+            },
+        }
+
+
+# Thread-local-ish: set per run_pipeline invocation.
+_CURRENT_USAGE: UsageTracker | None = None
+
+
+def estimate_enrichment_cost() -> dict:
+    """Pre-flight estimate for admin UI (section groups + typical repair passes)."""
+    groups = 5  # keep in sync with GROUPS length below
+    est_calls = groups + max(1, MAX_REPAIR_PASSES // 2)
+    # Empirical averages from production runs (~17 min / topic).
+    est_prompt = int(os.environ.get("KH_WORKER_EST_PROMPT_TOKENS", "90000") or "90000")
+    est_output = int(os.environ.get("KH_WORKER_EST_OUTPUT_TOKENS", "140000") or "140000")
+    cost = round(
+        (est_prompt / 1_000_000.0) * INPUT_USD_PER_M
+        + (est_output / 1_000_000.0) * OUTPUT_USD_PER_M,
+        4,
+    )
+    return {
+        "estimated_prompt_tokens": est_prompt,
+        "estimated_output_tokens": est_output,
+        "estimated_gemini_calls": est_calls,
+        "estimated_cost_usd": cost,
+        "estimated_cost_usd_min": round(cost * 0.6, 4),
+        "estimated_cost_usd_max": round(cost * 1.8, 4),
+        "model": GEMINI_MODEL,
+        "currency": "USD",
+        "note": "Google Gemini API bill estimate (not DoctorsHero doctor AI credits). Actual varies with repairs.",
+        "pricing": {
+            "input_usd_per_million": INPUT_USD_PER_M,
+            "output_usd_per_million": OUTPUT_USD_PER_M,
+        },
+    }
+
 
 # =============================================================================
 # The condensed v4 authoring rules embedded into every generation prompt.
@@ -184,16 +264,16 @@ def _post_signed(callback_url: str, payload: dict, retries: int = 3, timeout: fl
 
 
 def _progress(callback_url: str, job_id: str, topic_id: str, stage: str, progress: int) -> None:
-    _post_signed(
-        callback_url,
-        {
-            "job_id": job_id,
-            "topic_id": topic_id,
-            "status": "progress",
-            "stage": stage,
-            "progress": progress,
-        },
-    )
+    payload = {
+        "job_id": job_id,
+        "topic_id": topic_id,
+        "status": "progress",
+        "stage": stage,
+        "progress": progress,
+    }
+    if _CURRENT_USAGE is not None:
+        payload["usage"] = _CURRENT_USAGE.as_dict()
+    _post_signed(callback_url, payload)
 
 
 # =============================================================================
@@ -360,6 +440,8 @@ def _gemini_generate(prompt: str, retries: int = 5) -> str:
                 continue
             resp.raise_for_status()
             data = resp.json()
+            if _CURRENT_USAGE is not None:
+                _CURRENT_USAGE.add(data.get("usageMetadata") or data.get("usage"))
             candidates = data.get("candidates", [])
             if not candidates:
                 last_err = "no candidates"
@@ -541,12 +623,17 @@ def _repair(title: str, specialty: str, chapter: str, references: list[dict],
 def run_pipeline(job: dict, on_done=None) -> None:
     """Execute the full pipeline for one job dict:
     {job_id, topic_id, title, specialty, chapter, callback_url}."""
+    global _CURRENT_USAGE
     job_id = job["job_id"]
     topic_id = job["topic_id"]
     title = job["title"]
     specialty = job.get("specialty", "")
     chapter = job.get("chapter", specialty)
     callback_url = job["callback_url"]
+    _CURRENT_USAGE = UsageTracker()
+
+    def usage_payload() -> dict:
+        return _CURRENT_USAGE.as_dict() if _CURRENT_USAGE else {}
 
     try:
         _progress(callback_url, job_id, topic_id, "research", 5)
@@ -560,6 +647,7 @@ def run_pipeline(job: dict, on_done=None) -> None:
                     "status": "failed",
                     "error": f"insufficient verified references ({len(references)} found, need >=10)",
                     "validator_report": None,
+                    "usage": usage_payload(),
                 },
             )
             return
@@ -592,6 +680,7 @@ def run_pipeline(job: dict, on_done=None) -> None:
                     "status": "failed",
                     "error": summary,
                     "validator_report": report,
+                    "usage": usage_payload(),
                 },
             )
             return
@@ -605,6 +694,7 @@ def run_pipeline(job: dict, on_done=None) -> None:
                 "progress": 100,
                 "topic": topic,
                 "validator_report": report,
+                "usage": usage_payload(),
             },
         )
     except Exception as exc:  # noqa: BLE001 — final safety net; report and move on
@@ -617,8 +707,10 @@ def run_pipeline(job: dict, on_done=None) -> None:
                 "status": "failed",
                 "error": f"worker exception: {exc}",
                 "validator_report": None,
+                "usage": usage_payload(),
             },
         )
     finally:
+        _CURRENT_USAGE = None
         if on_done:
             on_done(job_id)

@@ -55,6 +55,12 @@ def health() -> dict:
     return {"status": "ok", "jobs_active": n}
 
 
+@app.get("/v1/cost-estimate")
+def cost_estimate() -> dict:
+    """Unsigned pre-flight estimate for admin UI (loopback-only service)."""
+    return {"success": True, "data": pipeline.estimate_enrichment_cost()}
+
+
 @app.post("/v1/enrich")
 async def enrich(request: Request):
     raw = await request.body()
