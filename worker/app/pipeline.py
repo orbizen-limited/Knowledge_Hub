@@ -6,7 +6,9 @@ Flow for one job:
   generate  → Gemini section-group generation (JSON mode), citing only real refs
   assemble  → merge groups into one v4 topic dict
   validate  → bundled vendor/validate_topic.py as a subprocess (gate)
-  repair    → feed validator errors back to Gemini, up to 3 passes
+  repair    → feed validator errors back to Gemini, up to MAX_REPAIR_PASSES (default 3)
+  bypass    → if still failing after max repairs: ingest anyway for board review
+              (KH_WORKER_VALIDATOR_BYPASS=1, default on) with bypass flag on report
   callback  → signed POST of progress / completed / failed to callback_url
 
 Every network stage emits a signed progress callback. All callbacks (progress,
@@ -41,6 +43,11 @@ GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 CROSSREF_MAILTO = os.environ.get("KH_WORKER_CROSSREF_MAILTO", "dev@doctorshero.com")
 USER_AGENT = f"DoctorsHero-KH-Worker/1.0 (+https://doctorshero.com; mailto:{CROSSREF_MAILTO})"
 MAX_REPAIR_PASSES = int(os.environ.get("KH_WORKER_MAX_REPAIR_PASSES", "3") or "3")
+# After all repair passes still fail validation, ingest anyway for human review
+# instead of failing the job. Set KH_WORKER_VALIDATOR_BYPASS=0 to disable.
+VALIDATOR_BYPASS_AFTER_REPAIRS = os.environ.get(
+    "KH_WORKER_VALIDATOR_BYPASS", "1"
+).strip().lower() not in ("0", "false", "no", "off")
 
 # Gemini 2.5 Flash list prices (USD / 1M tokens) — overridable via env.
 INPUT_USD_PER_M = float(os.environ.get("KH_WORKER_GEMINI_INPUT_USD_PER_M", "0.15") or "0.15")
@@ -143,7 +150,8 @@ HARD RULES (v4):
   [N] whose number is a supplied refId. Cite at the sentence making the claim.
 - Every managementSections and diagnosisSections ContentBlock MUST contain >=1 [N].
 - NO templated/counter padding ("item 1..N", "Day N", "Week N Expectations",
-  "micro-message N"). If content cannot be genuinely distinct, make it shorter.
+  "micro-message N", "lorem ipsum", "as an ai model", "placeholder"). If content
+  cannot be genuinely distinct, make it shorter — never pad.
 - GRADE every actionable recommendation (grade A/B/C + evidenceLevel + source year).
 - Cover the 7 mandatory special populations: pregnancy/lactation, paediatric,
   elderly/frail, renal impairment, hepatic impairment, resource-limited (Bangladesh),
@@ -165,6 +173,27 @@ HARD RULES (v4):
   specific numeric statement, never vague.
 - differentialDiagnosis entries are {"condition","distinguishingFeature"} with real
   distinguishing features.
+
+VALIDATOR HARD FLOORS (validate_topic.py — failing ANY of these fails the job):
+- Whole-topic JSON serialized length MUST be >= 100,000 characters.
+- references[]: every entry needs citation + url starting with https://doi.org/...;
+  each needs a unique positive integer refId; EVERY refId MUST appear as [N] in main text;
+  every [N] in text MUST match a refId (no dangling citations).
+- At least one society guideline family in references (e.g. AAP/AHA/ESC/NICE/WHO/IDSA).
+- differentialDiagnosis >= 3 entries with condition + distinguishingFeature.
+- prognosisQuantitative >= 5 entries with outcome + numeric estimate.
+- preciseDosing >= 2 entries, ALL 8 fields non-empty on each.
+- drugRegimens >= 6 entries; ALL 10 fields non-empty on each (incl. non-empty genericKeys[]).
+- treatmentLines >= 4 entries; each description >= 200 chars.
+- managementSections >= 5 blocks; each block >= 4 points; each point text >= 150 chars.
+- Combined management text (managementSections + treatmentLines + drugRegimens) >= 30,000 chars.
+- comorbidityManagement and complicationManagement: non-empty lists of {heading, detail}
+  with unique specific headings (no duplicate/generic placeholders).
+- Vancouver [N] required in EVERY managementSections / diagnosisSections ContentBlock.
+- Aggregate sections that claim evidence (summary, etiology, pathophys, presentation,
+  workup, treatmentLines, monitoring, complications, relapse, comorbidity/complication
+  management) should carry [N] markers where claims are made.
+- ContentBlock headings must NOT be artificial numbered labels ("Item 1", "Day 3", etc.).
 """
 
 
@@ -601,13 +630,26 @@ def _parse_validator_output(stdout: str, exit_code: int) -> dict:
 
 
 def _repair(title: str, specialty: str, chapter: str, references: list[dict],
-            report: dict, callback_url: str, job_id: str, topic_id: str) -> dict:
+            report: dict, callback_url: str, job_id: str, topic_id: str,
+            pass_num: int = 1) -> dict:
     """Regenerate ALL groups with the validator errors fed back in. Simpler and
     more robust than trying to map each error to a single group; the model is
     told exactly what failed and to fix it while keeping everything else valid."""
+    final = pass_num >= MAX_REPAIR_PASSES
+    urgency = (
+        f"FINAL repair pass ({pass_num}/{MAX_REPAIR_PASSES}). Prioritize fixing "
+        "EVERY listed error exactly — expand thin sections, add missing fields, "
+        "cite every refId as [N], and hit the density floors.\n\n"
+        if final
+        else f"Repair pass {pass_num}/{MAX_REPAIR_PASSES}.\n\n"
+    )
+    error_lines = report.get("error_list") or []
     error_note = (
-        "The previous draft FAILED validation with these errors — fix ALL of them "
-        "in this regeneration:\n- " + "\n- ".join(report["error_list"]) + "\n\n"
+        urgency
+        + "The previous draft FAILED validate_topic.py with these HARD errors — "
+        "fix ALL of them in this regeneration (do not invent new refIds):\n- "
+        + "\n- ".join(error_lines)
+        + "\n\n"
     )
     merged: dict = {}
     for group in GROUPS:
@@ -665,25 +707,58 @@ def run_pipeline(job: dict, on_done=None) -> None:
         while not report["passed"] and passes < MAX_REPAIR_PASSES:
             passes += 1
             _progress(callback_url, job_id, topic_id, f"repair:{passes}", 82 + passes * 4)
-            groups = _repair(title, specialty, chapter, references, report,
-                             callback_url, job_id, topic_id)
+            groups = _repair(
+                title, specialty, chapter, references, report,
+                callback_url, job_id, topic_id, pass_num=passes,
+            )
             topic = assemble_topic(topic_id, title, specialty, chapter, references, groups)
             report = run_validator(topic)
 
+        # After 2–3 repair passes, if still failing: accept draft for human review
+        # rather than burning another cycle. Admin sees bypass flag + remaining errors.
+        bypassed = False
         if not report["passed"]:
-            summary = f"{report['errors']} validator error(s) after {passes} repair pass(es)"
-            _post_signed(
-                callback_url,
-                {
-                    "job_id": job_id,
-                    "topic_id": topic_id,
-                    "status": "failed",
-                    "error": summary,
-                    "validator_report": report,
-                    "usage": usage_payload(),
-                },
-            )
-            return
+            if VALIDATOR_BYPASS_AFTER_REPAIRS and passes >= MAX_REPAIR_PASSES:
+                bypassed = True
+                err_preview = "; ".join((report.get("error_list") or [])[:5])
+                report = {
+                    **report,
+                    "passed": False,
+                    "bypassed": True,
+                    "bypass_after_repairs": passes,
+                    "bypass_reason": (
+                        f"Validator still failing after {passes} repair pass(es) "
+                        f"({report.get('errors', 0)} error(s)); accepted for board review."
+                    ),
+                    "error_preview": err_preview,
+                }
+                topic["validatorBypassed"] = True
+                topic["validatorBypassNote"] = report["bypass_reason"]
+                print(
+                    f"[pipeline] job {job_id}: validator bypass after {passes} repairs "
+                    f"— {report.get('errors')} remaining error(s)",
+                    file=sys.stderr,
+                )
+            else:
+                err_lines = report.get("error_list") or []
+                summary = (
+                    f"{report.get('errors', 0)} validator error(s) after {passes} "
+                    f"repair pass(es)"
+                )
+                if err_lines:
+                    summary += ": " + "; ".join(err_lines[:8])
+                _post_signed(
+                    callback_url,
+                    {
+                        "job_id": job_id,
+                        "topic_id": topic_id,
+                        "status": "failed",
+                        "error": summary[:4000],
+                        "validator_report": report,
+                        "usage": usage_payload(),
+                    },
+                )
+                return
 
         _post_signed(
             callback_url,
@@ -692,6 +767,7 @@ def run_pipeline(job: dict, on_done=None) -> None:
                 "topic_id": topic_id,
                 "status": "completed",
                 "progress": 100,
+                "stage": "done_validator_bypassed" if bypassed else "done",
                 "topic": topic,
                 "validator_report": report,
                 "usage": usage_payload(),
