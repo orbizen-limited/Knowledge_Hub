@@ -1,11 +1,113 @@
 #!/usr/bin/env python3
-"""Validate an enriched topic JSON file - tier 1 quality bar."""
+"""Validate an enriched topic JSON file - tier 1 quality bar.
+
+Usage:
+    validate_topic.py <file.json>   validate one enriched topic
+    validate_topic.py --corpus      corpus-level gate: no duplicate topicIds
+"""
 import json
+import os
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 MIN_CHARS = 100_000
+
+# Data sources for the v5 gates. VENDORED COPY (Knowledge_Hub worker): this
+# file runs outside the doctorshero-rx repo tree, so instead of resolving the
+# RX repo root we default every path to snapshots shipped next to this script
+# and allow env overrides for deployments that mount the real data elsewhere.
+VENDOR_DIR = Path(__file__).resolve().parent
+
+
+def _env_path(name: str, default: Path) -> Path:
+    v = os.environ.get(name, "").strip()
+    return Path(v) if v else default
+
+
+GENERIC_DB = _env_path("KH_VALIDATOR_GENERIC_DB", VENDOR_DIR / "medex_comprehensive_data.json")
+GENERIC_INDEX_CACHE = _env_path("KH_VALIDATOR_GENERIC_INDEX", VENDOR_DIR / "knowledge_hub_generic_index.json")
+ENRICHED_DIR = _env_path("KH_VALIDATOR_ENRICHED_DIR", VENDOR_DIR / "enriched")
+TOPIC_INDEX_CACHE = _env_path("KH_VALIDATOR_TOPIC_INDEX", VENDOR_DIR / "knowledge_hub_topic_index.json")
+
+# ---------------------------------------------------------------------------
+# Authoritative non-DOI URL allowlist for references[].
+#
+# The reference gate prefers DOIs ("https://doi.org/..."), but a slice of
+# genuine sources has no DOI to point at: regulator/society guideline pages
+# (FDA, WHO, NICE, NCCN, CDC, EMA, SIGN, GINA, GOLD, IDSA, ATS, ERS, KDIGO),
+# PubMed records of pre-DOI-era papers, NCBI Bookshelf / GeneReviews chapters,
+# and arXiv preprints. A reference url is therefore VALID when it either starts
+# with https://doi.org/ OR its host matches one of the entries below (exact
+# host or any subdomain — e.g. eur-lex.europa.eu matches europa.eu,
+# pubmed.ncbi.nlm.nih.gov matches nih.gov). DOI stays the preferred form: an
+# allowlisted url whose citation text still looks like a journal article
+# (year + volume:page pattern) earns a WARNING nudging authors back to the DOI.
+# Anything else remains a hard error.
+# ---------------------------------------------------------------------------
+AUTHORITATIVE_URL_HOSTS = (
+    # NCBI / NIH (PubMed, Bookshelf, GeneReviews, PMC) and US/EU public bodies
+    "pubmed.ncbi.nlm.nih.gov", "www.ncbi.nlm.nih.gov", "nih.gov",
+    "cdc.gov", "fda.gov", "who.int", "ema.europa.eu", "europa.eu",
+    # guideline bodies
+    "nice.org.uk", "sign.ac.uk", "nccn.org",
+    # respiratory / renal / infectious-disease societies
+    "ginasthma.org", "goldcopd.org", "idsociety.org", "thoracic.org",
+    "ersnet.org", "kidney-international.org", "kdigo.org",
+    # preprints
+    "arxiv.org",
+    # book / legal / report catalog & publisher sources for non-journal works
+    # that have no DOI: library/publisher records (MIT Press, Routledge),
+    # digital-library copies of print monographs (archive.org), official
+    # statute text (govinfo.gov), archived government reports (Georgetown's
+    # bioethics archive), an institutional legal repository (Minnesota Law),
+    # and society guideline platforms (ACR, ACR DSI, AASM, COG survivorship,
+    # NHS Scotland)
+    "archive.org", "mitpress.mit.edu", "routledge.com", "govinfo.gov",
+    "georgetown.edu", "scholarship.law.umn.edu",
+    "acr.org", "acrdsi.org", "aasm.org", "survivorshipguidelines.org",
+    "scot.nhs.uk",
+)
+
+_JOURNAL_YEAR_RE = re.compile(r"\b(?:19|20)\d{2}\b")
+_JOURNAL_VOL_PAGE_RE = re.compile(r";\s*\d+(?:\(\d+\))?\s*:")
+
+
+def _url_host_allowlisted(url):
+    """True when the url's host matches the authoritative allowlist, exactly
+    or as a subdomain ('eur-lex.europa.eu' -> 'europa.eu')."""
+    try:
+        host = (urlparse(url).hostname or "").lower().rstrip(".")
+    except ValueError:
+        return False
+    if not host:
+        return False
+    return any(host == h or host.endswith("." + h) for h in AUTHORITATIVE_URL_HOSTS)
+
+
+def _looks_like_journal_article(citation):
+    """Heuristic: citation carries a year (19xx/20xx) AND a volume(:issue):
+    page pattern like ';23(1):' or ';92:' — i.e. a journal article that should
+    have a DOI."""
+    return bool(
+        _JOURNAL_YEAR_RE.search(citation) and _JOURNAL_VOL_PAGE_RE.search(citation)
+    )
+
+
+# Facet records (topic JSONs with a non-empty canonicalTopicId) are thin
+# deep-link stubs: body content lives in the canonical topic. Carrying any of
+# these sections non-empty is a WARNING — the content should be moved to the
+# canonical, not duplicated in the facet.
+FACET_FULL_CONTENT_SECTIONS = [
+    "backgroundInformation", "etiologyEpidemiology", "pathophysiology",
+    "clinicalPresentation", "differentialDiagnosis", "diagnosticWorkup",
+    "diagnosisSections", "treatmentLines", "managementSections",
+    "recommendations", "preciseDosing", "drugRegimens", "specialPopulations",
+    "monitoringFollowUp", "complicationsPrognosis", "complicationSections",
+    "complicationManagement", "comorbidityManagement", "relapseRemission",
+    "patientEducation", "prognosisQuantitative", "references",
+]
 
 FORBIDDEN_PADDING = [
     "lorem ipsum", "as an ai model", "i cannot", "placeholder",
@@ -153,10 +255,165 @@ SECTION_NAMES = [
 ]
 
 
+def _atomic_write_json(path, payload):
+    """Write a cache file atomically (tmp + rename) so a concurrent validator
+    run never reads a half-written index."""
+    try:
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        tmp.write_text(json.dumps(payload), encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError:
+        pass  # the cache is an optimisation; validation must still work
+
+
+def _load_generic_names():
+    """Salt-tolerant generic-name index for doseSpec.genericKey resolution.
+
+    Built from the medex comprehensive DB (generic names from the generics
+    sections + generic_name of every brand entry) and cached to
+    tools/knowledge_hub_generic_index.json; the cache is rebuilt when the DB
+    file's (mtime, size) changes or the cache is missing/corrupt. When the
+    cache is valid the big DB is never parsed."""
+    try:
+        st = GENERIC_DB.stat()
+        sig = [st.st_mtime, st.st_size]
+    except OSError:
+        sig = None
+    if GENERIC_INDEX_CACHE.exists():
+        try:
+            cached = json.loads(GENERIC_INDEX_CACHE.read_text(encoding="utf-8"))
+            # Vendored deployments ship only the index snapshot (no medex DB
+            # on the worker box): when the DB file is absent, trust the
+            # snapshot unconditionally instead of rebuilding from nothing.
+            if cached.get("db_signature") == sig or sig is None:
+                return set(cached["generic_names"])
+        except (json.JSONDecodeError, KeyError, TypeError, OSError):
+            pass  # fall through to rebuild
+    names = set()
+    try:
+        db = json.loads(GENERIC_DB.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        db = {}
+    for section in ("generics_allopathic", "generics_herbal"):
+        for e in db.get(section, []) or []:
+            n = str(e.get("medicine_name") or "").strip().lower()
+            if n:
+                names.add(n)
+    for section in ("brands_allopathic", "brands_herbal"):
+        for e in db.get(section, []) or []:
+            g = str(e.get("generic_name") or "").strip().lower()
+            if g:
+                names.add(g)
+    if names:
+        _atomic_write_json(
+            GENERIC_INDEX_CACHE,
+            {"db_signature": sig, "generic_names": sorted(names)},
+        )
+    return names
+
+
+def _generic_resolves(generic_key, names):
+    """Mirror of MedicineDatabaseService.getBrandsByGenericPrefix
+    (lib/services/database/medicine_database_service.dart): the key matches
+    when a DB generic equals it exactly, or begins with `key + separator`
+    (space or comma) — so salt forms resolve ('warfarin' -> 'Warfarin
+    Sodium', 'amlodipine' -> 'Amlodipine Besylate'). Never a fuzzy match."""
+    g = generic_key.strip().lower()
+    if not g:
+        return False
+    if g in names:
+        return True
+    return any(n.startswith(g + " ") or n.startswith(g + ",") for n in names)
+
+
+def _load_topic_index():
+    """Snapshot {topicId: title} of every topic in assets/knowledge_hub/
+    enriched/, for the v5 link-integrity gate. Cached to
+    tools/knowledge_hub_topic_index.json; rebuilt when the newest file mtime
+    in the enriched dir changes (or the file count differs, or the cache is
+    missing/corrupt). Returns (topic_ids_dict, lowercased_title_set)."""
+    files = sorted(ENRICHED_DIR.glob("*.json"))
+    newest = 0.0
+    for f in files:
+        try:
+            m = f.stat().st_mtime
+            if m > newest:
+                newest = m
+        except OSError:
+            pass
+    if TOPIC_INDEX_CACHE.exists():
+        try:
+            cached = json.loads(TOPIC_INDEX_CACHE.read_text(encoding="utf-8"))
+            # Vendored deployments have no enriched/ dir on disk — trust the
+            # shipped snapshot when there are no local files to index.
+            if not files or (cached.get("newest_mtime") == newest
+                    and len(cached.get("topics", {})) >= 0
+                    and cached.get("file_count") == len(files)):
+                topics = cached["topics"]
+                return topics, {t.strip().lower() for t in topics.values()}
+        except (json.JSONDecodeError, KeyError, TypeError, OSError):
+            pass  # fall through to rebuild
+    topics = {}
+    for f in files:
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        tid = str(d.get("topicId") or "").strip()
+        title = str(d.get("title") or "").strip()
+        if tid:
+            topics[tid] = title
+    _atomic_write_json(
+        TOPIC_INDEX_CACHE,
+        {"newest_mtime": newest, "file_count": len(files), "topics": topics},
+    )
+    return topics, {t.strip().lower() for t in topics.values()}
+
+
+def _corpus_mode():
+    """Corpus-level gate: a single topicId must never be declared by more
+    than one enriched file. Per-file validation cannot see siblings, hence
+    this separate mode. Fast path: regex out the topicId instead of parsing
+    each whole file."""
+    seen = {}
+    duplicates = []
+    tid_re = re.compile(r'"topicId"\s*:\s*"([^"]+)"')
+    files = sorted(ENRICHED_DIR.glob("*.json"))
+    for f in files:
+        tid = None
+        try:
+            m = tid_re.search(f.read_text(encoding="utf-8"))
+            if m:
+                tid = m.group(1)
+        except OSError:
+            pass
+        if tid is None:
+            try:
+                tid = str(json.loads(f.read_text(encoding="utf-8")).get("topicId") or "").strip()
+            except (json.JSONDecodeError, OSError):
+                continue
+        if not tid:
+            continue
+        if tid in seen:
+            duplicates.append((tid, seen[tid], f.name))
+        else:
+            seen[tid] = f.name
+    print(f"corpus: {len(files)} files scanned, {len(seen)} unique topicIds")
+    if duplicates:
+        print(f"DUPLICATE topicIds: {len(duplicates)}")
+        for tid, first, second in duplicates:
+            print(f"  - '{tid}' declared by both {first} and {second}")
+        sys.exit(1)
+    print("OK: no duplicate topicIds")
+    sys.exit(0)
+
+
 def main():
     if len(sys.argv) < 2:
-        print("usage: validate_topic.py <file.json>")
+        print("usage: validate_topic.py <file.json> | --corpus")
         sys.exit(1)
+    if sys.argv[1] == "--corpus":
+        _corpus_mode()
     p = Path(sys.argv[1])
     if not p.exists():
         print(f"File not found: {p}")
@@ -177,8 +434,103 @@ def main():
     s = json.dumps(topic, ensure_ascii=False)
     char_count = len(s)
 
+    # Standard opt-in flags. v4: "referenceStyle": "vancouver". v5:
+    # "contentStandard": "v5" — implies every v4 gate also applies as a hard
+    # error (v5 is a superset standard), plus the v5-only gates below.
+    ref_style = str(topic.get("referenceStyle") or "").strip().lower()
+    v5 = str(topic.get("contentStandard") or "").strip().lower() == "v5"
+    v4 = ref_style == "vancouver" or v5
+
+    # ------------------------------------------------------------------
+    # Facet-record mode. A topic JSON whose canonicalTopicId is a non-empty
+    # string is a thin deep-link stub (Dart: KnowledgeTopic.canonicalTopicId /
+    # facetAnchors), not a full topic. Only the facet contract is enforced;
+    # every full-content gate below (100K chars, sections, preciseDosing,
+    # references, v4/v5 gates) is SKIPPED.
+    # ------------------------------------------------------------------
+    canonical_id = topic.get("canonicalTopicId")
+    if isinstance(canonical_id, str) and canonical_id.strip():
+        cid = canonical_id.strip()
+        tid = str(topic.get("topicId") or "").strip()
+        t = str(topic.get("title") or "").strip()
+        if not tid:
+            errors.append("facet record: topicId missing/empty")
+        if not t:
+            errors.append("facet record: title missing/empty")
+        if tid and cid == tid:
+            errors.append(
+                "facet record: canonicalTopicId equals topicId (self-loop) — "
+                "a facet must deep-link into a different canonical topic"
+            )
+        known_ids, _ = _load_topic_index()
+        if cid not in known_ids:
+            errors.append(
+                f"facet record: canonicalTopicId '{cid}' resolves to no topicId "
+                f"in the enriched corpus index"
+            )
+        sp = topic.get("summaryParagraphs")
+        if not isinstance(sp, list) or not any(
+            isinstance(x, str) and x.strip() for x in sp
+        ):
+            errors.append(
+                "facet record: summaryParagraphs missing/empty — the Flutter "
+                "loader requires body content"
+            )
+        # reviewStatus enum-index check applies to facets too — Dart's
+        # ReviewStatusX.fromIndex silently coerces a non-int to 'approved'.
+        rs = topic.get("reviewStatus")
+        if not isinstance(rs, bool) and isinstance(rs, int):
+            if rs not in (0, 1, 2, 3):
+                errors.append(
+                    f"facet record: reviewStatus={rs} out of range 0-3 "
+                    f"(0=pendingClinicianCheck 1=pendingBoardReview 2=approved 3=rejected)"
+                )
+        else:
+            errors.append(
+                f"facet record: reviewStatus must be an integer enum index (0-3), "
+                f"got {rs!r} ({type(rs).__name__})"
+            )
+        for sec in FACET_FULL_CONTENT_SECTIONS:
+            if topic.get(sec):
+                warnings.append(
+                    f"facet record carries full-content section '{sec}' — "
+                    f"content should live in the canonical topic '{cid}'"
+                )
+        print(f"topic:    {title}")
+        print(f"id:       {topic_id}")
+        print(f"chars:    {char_count:,}")
+        print(f"standard: facet record (canonical: {cid})")
+        print(f"errors:   {len(errors)}")
+        for e in errors:
+            print(f"  - {e}")
+        print(f"warnings: {len(warnings)}")
+        for w in warnings:
+            print(f"  - {w}")
+        sys.exit(0 if not errors else 1)
+
     if char_count < MIN_CHARS:
         errors.append(f"content chars={char_count:,} below minimum {MIN_CHARS:,}")
+
+    # reviewStatus must be the integer enum index (0=pendingClinicianCheck,
+    # 1=pendingBoardReview, 2=approved, 3=rejected). Dart's ReviewStatusX.fromIndex
+    # silently coerces anything else (a string name, a numeric string, missing
+    # key) to index -1 -> falls through to the *default* `approved` -- so a
+    # non-int reviewStatus doesn't just fail to parse, it silently mislabels the
+    # topic as clinician-approved. Hard error, not a warning.
+    review_status = topic.get("reviewStatus")
+    if not isinstance(review_status, bool) and isinstance(review_status, int):
+        if review_status not in (0, 1, 2, 3):
+            errors.append(
+                f"reviewStatus={review_status} out of range 0-3 "
+                f"(0=pendingClinicianCheck 1=pendingBoardReview 2=approved 3=rejected)"
+            )
+    else:
+        errors.append(
+            f"reviewStatus must be an integer enum index (0-3), got "
+            f"{review_status!r} ({type(review_status).__name__}) -- a non-int "
+            f"value is silently coerced to 'approved' by the app, mislabelling "
+            f"the review state"
+        )
 
     lower = s.lower()
     for stem in FORBIDDEN_PADDING:
@@ -195,8 +547,22 @@ def main():
             if not cit:
                 errors.append(f"reference missing citation: {r}")
                 continue
-            if not url.startswith("https://doi.org/"):
-                errors.append(f"reference missing/invalid url (must be https://doi.org/...): {cit[:80]}")
+            if url.startswith("https://doi.org/"):
+                continue
+            if _url_host_allowlisted(url):
+                # DOI stays the preferred form: nudge when the citation still
+                # looks like a journal article (year + volume:page pattern).
+                if _looks_like_journal_article(cit):
+                    warnings.append(
+                        f"allowlisted non-DOI url for what looks like a journal "
+                        f"article — prefer https://doi.org/…: {cit[:80]}"
+                    )
+                continue
+            errors.append(
+                f"reference missing/invalid url (must be https://doi.org/... or a "
+                f"host on the authoritative allowlist — see AUTHORITATIVE_URL_HOSTS "
+                f"at the top of validate_topic.py): {cit[:80]}"
+            )
 
     society_seen = False
     for r in refs + [topic]:
@@ -231,15 +597,15 @@ def main():
                 errors.append(f"prognosisQuantitative entry missing 'estimate': {p}")
             # v3 Part C.2 TARGET: prognosis DOI should be the full
             # https://doi.org/... URL, not a bare 10.x DOI. Kept a WARNING (not a
-            # hard error) because a large slice of the already-deployed corpus
-            # (e.g. cardiology) stores bare DOIs; hard-failing them would break
-            # shipped topics. New topics MUST use the full URL; a corpus-wide
-            # normalization (json.load -> prefix -> json.dump) is the follow-up.
+            # hard error) for legacy and v4 topics because a large slice of the
+            # already-deployed corpus (e.g. cardiology) stores bare DOIs;
+            # hard-failing them would break shipped topics. For v5-standard
+            # topics it is a HARD ERROR — new topics MUST use the full URL.
             doi = str(p.get("doi", ""))
             if not doi:
                 warnings.append(f"prognosisQuantitative missing doi: {p.get('outcome','')[:60]}")
             elif not doi.startswith("https://doi.org/"):
-                warnings.append(
+                (errors if v5 else warnings).append(
                     f"prognosisQuantitative doi should be full 'https://doi.org/...' URL: "
                     f"{p.get('outcome','')[:50]}"
                 )
@@ -336,6 +702,17 @@ def main():
                 errors.append(f"{sec_name}[{idx}] '{h}' has empty 'points' list")
             else:
                 for p in pts:
+                    if not isinstance(p, dict):
+                        # A point authored as a raw string or nested list instead
+                        # of {text, level} used to crash the whole validator run
+                        # with an unhandled AttributeError, making the file
+                        # unauditable rather than reporting it as a failure.
+                        errors.append(
+                            f"{sec_name}[{idx}] '{h}' has a point that is not a "
+                            f"{{text, level}} object (got {type(p).__name__}): "
+                            f"{str(p)[:80]}"
+                        )
+                        continue
                     pt_text = p.get("text", "").strip()
                     if not pt_text:
                         continue
@@ -433,6 +810,8 @@ def main():
     #
     # A topic opts into the v4 standard by setting top-level metadata
     #   "referenceStyle": "vancouver"
+    # (v5-standard topics — "contentStandard": "v5" — are treated as v4
+    # too; the flags are computed up front, right after the JSON loads.)
     # For v4 topics every check below is a HARD ERROR. For legacy topics
     # (no flag — the entire pre-v4 deployed corpus) the same checks
     # degrade to warnings, so we tighten the authoring standard going
@@ -440,9 +819,6 @@ def main():
     # hard gates that retro-fail the corpus create a backlog, not
     # compliance).
     # ------------------------------------------------------------------
-    ref_style = str(topic.get("referenceStyle") or "").strip().lower()
-    v4 = ref_style == "vancouver"
-
     def _v4_fail(msg):
         (errors if v4 else warnings).append(msg)
 
@@ -471,7 +847,10 @@ def main():
             f"in the main text — cite them [N] where the claim is made or drop them"
         )
     if v4 and not cited:
-        errors.append("referenceStyle is 'vancouver' but no [N] citation markers found in any main-text section")
+        errors.append(
+            "v4/v5-standard topic but no [N] citation markers found in any "
+            "main-text section (referenceStyle 'vancouver' / contentStandard 'v5')"
+        )
 
     # Per-block citation coverage: every management/diagnosis ContentBlock
     # must anchor its claims to at least one numbered reference.
@@ -554,10 +933,177 @@ def main():
             f"densest part of the topic, not a summary"
         )
 
+    # ------------------------------------------------------------------
+    # v5 gates: structured doseSpec on every drugRegimens entry, and
+    # cross-topic link integrity.
+    #
+    # A topic opts into the v5 standard by setting top-level metadata
+    #   "contentStandard": "v5"
+    # v5 implies every v4 gate above as a hard error too. The doseSpec
+    # schema gate is v5-only and silent for other topics (the deployed
+    # corpus has no doseSpec yet — warning there would be pure noise);
+    # the link-integrity gate degrades to a warning for non-v5 topics,
+    # same as the v4 pattern.
+    # ------------------------------------------------------------------
+    def _v5_fail(msg):
+        (errors if v5 else warnings).append(msg)
+
+    if v5 and isinstance(dreg, list):
+        generic_names = None  # lazy: built only when a genericKey needs resolving
+        for di, dr in enumerate(dreg):
+            if not isinstance(dr, dict):
+                continue
+            label = dr.get("drug", "") or f"entry {di}"
+            spec = dr.get("doseSpec")
+            if not isinstance(spec, dict):
+                errors.append(
+                    f"drugRegimens[{di}] '{label}' missing 'doseSpec' object "
+                    f"(v5 structured dosing schema)"
+                )
+                continue
+            amount = spec.get("amount")
+            if isinstance(amount, bool) or not isinstance(amount, (int, float)) or amount <= 0:
+                errors.append(
+                    f"drugRegimens[{di}] '{label}' doseSpec.amount must be a positive "
+                    f"number, got {amount!r}"
+                )
+            for k in ("unit", "route", "frequency", "maxDosePerDay", "genericKey"):
+                if not str(spec.get(k, "")).strip():
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.{k} must be a non-empty string"
+                    )
+            if "durationDays" not in spec:
+                errors.append(
+                    f"drugRegimens[{di}] '{label}' doseSpec.durationDays key must be present "
+                    f"(number of days, or null only if genuinely open-ended e.g. lifelong "
+                    f"therapy) — an absent key is an authoring gap, not 'open-ended'"
+                )
+            else:
+                dd = spec["durationDays"]
+                if dd is not None and (isinstance(dd, bool) or not isinstance(dd, (int, float))):
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.durationDays must be a number "
+                        f"or null, got {dd!r}"
+                    )
+            taper = spec.get("taper")
+            if taper is not None and not (
+                isinstance(taper, dict) and str(taper.get("schedule", "")).strip()
+            ):
+                errors.append(
+                    f"drugRegimens[{di}] '{label}' doseSpec.taper must be null or "
+                    f"{{schedule: <non-empty string>}}"
+                )
+            for adj_key, band_key in (("renalAdjustment", "egfrBand"),
+                                      ("hepaticAdjustment", "severityBand")):
+                adj = spec.get(adj_key)
+                if not isinstance(adj, list):
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.{adj_key} must be an array "
+                        f"(empty array allowed when the drug needs no adjustment)"
+                    )
+                else:
+                    for ai, a in enumerate(adj):
+                        if not isinstance(a, dict) or not str(a.get(band_key, "")).strip() \
+                                or not str(a.get("action", "")).strip():
+                            errors.append(
+                                f"drugRegimens[{di}] '{label}' doseSpec.{adj_key}[{ai}] must "
+                                f"be an object with non-empty '{band_key}' and 'action'"
+                            )
+            gkey = str(spec.get("genericKey", "")).strip()
+            if gkey:
+                if generic_names is None:
+                    generic_names = _load_generic_names()
+                if not generic_names:
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.genericKey cannot be verified — "
+                        f"medex generic DB index unavailable"
+                    )
+                elif not _generic_resolves(gkey, generic_names):
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.genericKey '{gkey}' does not "
+                        f"resolve to any generic in the medex DB"
+                    )
+            rids = spec.get("refIds")
+            if not isinstance(rids, list) or not rids:
+                errors.append(
+                    f"drugRegimens[{di}] '{label}' doseSpec.refIds must be a non-empty "
+                    f"array of references[] refId integers"
+                )
+            else:
+                if any(not isinstance(r, int) or isinstance(r, bool) for r in rids):
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.refIds must all be "
+                        f"integers: {rids}"
+                    )
+                orphan = [r for r in rids if isinstance(r, int) and r not in ref_ids]
+                if orphan:
+                    errors.append(
+                        f"drugRegimens[{di}] '{label}' doseSpec.refIds {orphan} have no "
+                        f"matching references[] refId"
+                    )
+
+    # --- Link integrity: relatedTopicIds / crossReferences must resolve ---
+    related = topic.get("relatedTopicIds") or []
+    crossrefs = topic.get("crossReferences") or []
+    if isinstance(related, list) and isinstance(crossrefs, list) and (related or crossrefs):
+        known_ids, known_titles = _load_topic_index()
+        for rid in related:
+            r = str(rid).strip()
+            if r and r not in known_ids:
+                _v5_fail(
+                    f"relatedTopicIds entry '{r}' matches no topicId in the enriched corpus"
+                )
+        for c in crossrefs:
+            cs = str(c).strip()
+            if cs and cs not in known_ids and cs.lower() not in known_titles:
+                _v5_fail(
+                    f"crossReferences entry '{cs[:60]}' resolves to no known topic "
+                    f"(by exact topicId or exact title)"
+                )
+
+    # --- facetAnchors: map facet topicId -> a heading inside THIS topic ---
+    # Full topics may declare deep-link anchors for their facet records. Both
+    # directions are checked as warnings: the facet topicId must exist in the
+    # corpus index, and the anchor value must match a real ContentBlock heading
+    # in this topic's own management/diagnosis/complication/background sections.
+    anchors = topic.get("facetAnchors")
+    if isinstance(anchors, dict) and anchors:
+        known_ids, _ = _load_topic_index()
+        own_headings = set()
+        for sec_name in ("managementSections", "diagnosisSections",
+                         "complicationSections", "backgroundInformation"):
+            blocks = topic.get(sec_name, [])
+            if not isinstance(blocks, list):
+                continue
+            for b in blocks:
+                if isinstance(b, dict):
+                    h = str(b.get("heading") or "").strip().lower()
+                    if h:
+                        own_headings.add(h)
+        for facet_id, heading in anchors.items():
+            fid = str(facet_id).strip()
+            if fid and fid not in known_ids:
+                warnings.append(
+                    f"facetAnchors key '{fid}' resolves to no topicId in the "
+                    f"enriched corpus index"
+                )
+            hs = str(heading).strip()
+            if hs and hs.lower() not in own_headings:
+                warnings.append(
+                    f"facetAnchors['{fid}'] heading '{hs[:60]}' matches no heading "
+                    f"in this topic's managementSections/diagnosisSections/"
+                    f"complicationSections/backgroundInformation"
+                )
+
+    std_line = (
+        "v5 — all v4 + v5 gates enforced as errors" if v5
+        else "v4 (vancouver) — gates enforced as errors" if v4
+        else "legacy — v4/v5 gates reported as warnings"
+    )
     print(f"topic:    {title}")
     print(f"id:       {topic_id}")
     print(f"chars:    {char_count:,}")
-    print(f"standard: {'v4 (vancouver) — gates enforced as errors' if v4 else 'legacy — v4 gates reported as warnings'}")
+    print(f"standard: {std_line}")
     print(f"errors:   {len(errors)}")
     for e in errors:
         print(f"  - {e}")

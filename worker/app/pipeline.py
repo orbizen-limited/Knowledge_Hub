@@ -1,10 +1,12 @@
 """
-pipeline.py — the server-side v4 enrichment pipeline.
+pipeline.py — the server-side v5 enrichment pipeline.
 
 Flow for one job:
   research  → Crossref reference discovery + per-DOI re-verification
   generate  → Gemini section-group generation (JSON mode), citing only real refs
-  assemble  → merge groups into one v4 topic dict
+  assemble  → merge groups into one v5 topic dict (contentStandard "v5":
+              doseSpec on every drugRegimens entry, drugInteractionFlags,
+              no worker-authored cross-topic links)
   validate  → bundled vendor/validate_topic.py as a subprocess (gate)
   repair    → feed validator errors back to Gemini, up to MAX_REPAIR_PASSES (default 3)
   bypass    → if still failing after max repairs: ingest anyway for board review
@@ -131,17 +133,23 @@ def estimate_enrichment_cost() -> dict:
 
 
 # =============================================================================
-# The condensed v4 authoring rules embedded into every generation prompt.
-# Distilled from tools/tier1_enhance/prompts/master_topic_prompt.md.
+# The condensed v5 authoring rules embedded into every generation prompt.
+# Distilled from tools/tier1_enhance/prompts/master_topic_prompt.md plus the
+# v5 additions (skills/medical-content-quality-framework Part M): structured
+# doseSpec on every drug regimen, topic-level drugInteractionFlags, and
+# contentStandard "v5" (which makes every v4 gate a hard error too).
 # =============================================================================
-V4_RULES = """\
+V5_RULES = """\
 You are a senior clinical editorial physician authoring a Tier-1 reference for the
 DoctorsHero RX Clinical Knowledge Hub (Bangladesh EMR). Quality bar: more
 decision-dense, current, traceable and machine-actionable than UpToDate/BMJ Best
 Practice. Every section must carry something a doctor could not recall precisely
 (a threshold, a number+CI, a titration step, a stop rule).
 
-HARD RULES (v4):
+This topic is authored to contentStandard "v5" — every v4 rule below is a HARD
+error, plus the v5 structured-dosing rules at the end.
+
+HARD RULES (v4 base):
 - Output STRICT JSON only, matching the requested schema keys EXACTLY. No prose
   outside the JSON. No markdown fences.
 - NO fabrication. Cite ONLY the numbered references supplied to you, using inline
@@ -194,6 +202,33 @@ VALIDATOR HARD FLOORS (validate_topic.py — failing ANY of these fails the job)
   workup, treatmentLines, monitoring, complications, relapse, comorbidity/complication
   management) should carry [N] markers where claims are made.
 - ContentBlock headings must NOT be artificial numbered labels ("Item 1", "Day 3", etc.).
+
+V5 STRUCTURED DOSING (hard errors — validate_topic.py v5 gates):
+- EVERY drugRegimens entry MUST also carry a "doseSpec" object:
+    {"amount": <positive number>, "unit": "mg"|"mcg"|"g"|"mL"|"units"|...,
+     "route": "PO"|"IV"|"IM"|"SC"|..., "frequency": "OD"|"BD"|"TDS"|"q8h"|...,
+     "durationDays": <number of days, or null ONLY if genuinely open-ended
+       (e.g. lifelong therapy) — the KEY must always be present>,
+     "maxDosePerDay": "<non-empty string, e.g. '40 mg/day'>",
+     "taperSchedule": "<taper description string>" or null,
+     "renalAdjustment": [{"egfrBand": "<e.g. eGFR 30-59>", "action": "<what to do>"}, ...]
+       (empty array [] allowed ONLY when the drug truly needs no renal adjustment),
+     "hepaticAdjustment": [{"severityBand": "<e.g. Child-Pugh B>", "action": "<what to do>"}, ...]
+       (empty array [] allowed ONLY when no hepatic adjustment is needed),
+     "genericKey": "<bare lowercase generic name WITHOUT salt, e.g. 'warfarin',
+       'amlodipine', 'metformin' — must be a real generic marketed in Bangladesh>",
+     "refIds": [<integer refIds from the supplied reference list backing this dose>]}
+  doseSpec.amount is the starting/standard single dose amount matching initialDose.
+- The topic MUST carry a top-level "drugInteractionFlags" array (>=4 entries) of:
+    {"type": "drug-drug"|"drug-disease"|"drug-pregnancy"|"drug-lactation"|
+       "drug-renal"|"drug-hepatic",
+     "subject": "<the interacting drug/condition>",
+     "action": "<specific clinical action: avoid / adjust dose / monitor X>",
+     "severity": "contraindicated"|"major"|"moderate"|"minor",
+     "refIds": [<integer refIds>]}
+  covering the clinically important interactions of the drugs you listed.
+- Do NOT output crossReferences or relatedTopicIds — cross-topic links are added
+  later against the deployed corpus index; unresolvable links fail validation.
 """
 
 
@@ -242,9 +277,15 @@ GROUPS = [
         "instruction": (
             "Generate the DRUGS group. Return a JSON object with EXACTLY these keys:\n"
             "  drugRegimens (array of >=8 objects, EACH with all keys non-empty: drug, indication, initialDose, "
-            "titration, maintenanceDose, termination, alternatives, adverseEffectManagement, monitoring, genericKeys:[]),\n"
+            "titration, maintenanceDose, termination, alternatives, adverseEffectManagement, monitoring, genericKeys:[], "
+            "AND a doseSpec object exactly as specified in the V5 STRUCTURED DOSING rules — amount, unit, route, "
+            "frequency, durationDays (key always present; null only if open-ended), maxDosePerDay, taperSchedule, "
+            "renalAdjustment:[{egfrBand,action}], hepaticAdjustment:[{severityBand,action}], genericKey (bare "
+            "lowercase generic, no salt), refIds:[int]),\n"
             "  preciseDosing (array of >=4 objects, EACH with all 8 fields non-empty: drug, indication, standardDose, "
-            "doseReductionCriteria, renalAdjustment, hepaticAdjustment, administration, onsetOffset)."
+            "doseReductionCriteria, renalAdjustment, hepaticAdjustment, administration, onsetOffset),\n"
+            "  drugInteractionFlags (array of >=4 objects {type, subject, action, severity, refIds:[int]} per the "
+            "V5 rules, covering the clinically important interactions of the drugs above)."
         ),
     },
     {
@@ -261,8 +302,8 @@ GROUPS = [
             "  prognosisQuantitative (array of >=10 objects {outcome, estimate, source, doi} where doi is a full "
             "https://doi.org/... URL from the reference list; estimate is a specific numeric statement),\n"
             "  comorbidityManagement (array of >=6 objects {heading, detail} with UNIQUE specific headings and [N]),\n"
-            "  complicationManagement (array of >=5 objects {heading, detail} with UNIQUE specific headings and [N]),\n"
-            "  crossReferences (array of 4-10 related topic title strings)."
+            "  complicationManagement (array of >=5 objects {heading, detail} with UNIQUE specific headings and [N]).\n"
+            "Do NOT output crossReferences or relatedTopicIds."
         ),
     },
 ]
@@ -494,7 +535,7 @@ def _references_block(references: list[dict]) -> str:
 def _build_prompt(group: dict, title: str, specialty: str, chapter: str,
                   references: list[dict], repair_note: str = "") -> str:
     return (
-        f"{V4_RULES}\n\n"
+        f"{V5_RULES}\n\n"
         f"TOPIC TITLE: {title}\n"
         f"SPECIALTY: {specialty}\n"
         f"CHAPTER: {chapter}\n\n"
@@ -548,6 +589,7 @@ def assemble_topic(topic_id: str, title: str, specialty: str, chapter: str,
         "tier": "tier1",
         "contentVersion": 2,
         "reviewStatus": 0,
+        "contentStandard": "v5",
         "referenceStyle": "vancouver",
         "lastUpdated": datetime.now(timezone.utc).date().isoformat(),
         "agentGenerated": True,
@@ -562,9 +604,14 @@ def assemble_topic(topic_id: str, title: str, specialty: str, chapter: str,
     topic["tier"] = "tier1"
     topic["contentVersion"] = 2
     topic["reviewStatus"] = 0
+    topic["contentStandard"] = "v5"
     topic["referenceStyle"] = "vancouver"
     topic["agentGenerated"] = True
     topic["references"] = references
+    # The worker cannot see the deployed corpus, so it must never author
+    # cross-topic links: any unresolvable entry is a hard v5 error.
+    topic["crossReferences"] = []
+    topic["relatedTopicIds"] = []
     return topic
 
 

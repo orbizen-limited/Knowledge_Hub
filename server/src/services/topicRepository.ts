@@ -50,6 +50,14 @@ const CONTENT_LIST_FIELDS = [
   'prognosisQuantitative',
   'preciseDosing',
   'reviewLog',
+  'drugInteractionFlags',
+] as const;
+
+// v5 scalar metadata carried inside the content jsonb (absent on legacy rows).
+const CONTENT_SCALAR_FIELDS = [
+  'contentStandard',
+  'referenceStyle',
+  'canonicalTopicId',
 ] as const;
 
 export function rowToTopic(row: TopicRow) {
@@ -74,6 +82,19 @@ export function rowToTopic(row: TopicRow) {
   for (const field of CONTENT_LIST_FIELDS) {
     base[field] = content[field] ?? [];
   }
+  for (const field of CONTENT_SCALAR_FIELDS) {
+    base[field] = content[field] ?? '';
+  }
+  // Stored as a {facetTopicId: sectionHeading} map; GraphQL has no map type,
+  // so expose it as a list of pairs.
+  const anchors = content.facetAnchors;
+  base.facetAnchors =
+    anchors && typeof anchors === 'object' && !Array.isArray(anchors)
+      ? Object.entries(anchors).map(([facetTopicId, sectionHeading]) => ({
+          facetTopicId,
+          sectionHeading: String(sectionHeading ?? ''),
+        }))
+      : [];
   return base;
 }
 

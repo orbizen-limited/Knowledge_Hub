@@ -37,6 +37,31 @@ function intOr(raw: Json, fallback: number): number {
   return fallback;
 }
 
+function numberOr(raw: Json, fallback: number): number {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (typeof raw === 'string') {
+    const parsed = Number.parseFloat(raw.trim());
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+}
+
+function intOrNull(raw: Json): number | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return Math.trunc(raw);
+  if (typeof raw === 'string') {
+    const parsed = Number.parseInt(raw.trim(), 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function intList(raw: Json): number[] {
+  return rawList(raw)
+    .map((r) => intOrNull(r))
+    .filter((r): r is number => r !== null);
+}
+
 function stringList(raw: Json): string[] {
   if (raw === null || raw === undefined) return [];
   if (typeof raw === 'string') {
@@ -135,6 +160,46 @@ const REVIEW_STATUS_NAMES = [
   'rejected',
 ];
 const CARE_SETTING_NAMES = ['outpatient', 'inpatient', 'critical'];
+
+// v5 structured dosing — mirrors DoseSpec.fromJson in doctorshero-rx's
+// knowledge_topic.dart (taperSchedule string, band arrays keyed egfrBand /
+// severityBand). Tolerates the alternate {taper: {schedule}} authoring shape.
+function normalizeDoseSpec(raw: Json): Record<string, Json> | null {
+  if (!isPlainObject(raw)) return null;
+  const bands = (list: Json, bandKey: string) =>
+    mapList(list)
+      .map((b) => ({
+        [bandKey]: stringOr(b[bandKey] ?? b.band, ''),
+        action: stringOr(b.action, ''),
+      }))
+      .filter((b) => String(b[bandKey]).trim() || String(b.action).trim());
+  const taperRaw = raw.taperSchedule ?? (isPlainObject(raw.taper) ? raw.taper.schedule : null);
+  const taperSchedule = stringOr(taperRaw, '').trim();
+  return {
+    amount: numberOr(raw.amount, 0),
+    unit: stringOr(raw.unit, ''),
+    route: stringOr(raw.route, ''),
+    frequency: stringOr(raw.frequency, ''),
+    durationDays: intOrNull(raw.durationDays),
+    maxDosePerDay: stringOr(raw.maxDosePerDay, ''),
+    taperSchedule: taperSchedule || null,
+    renalAdjustment: bands(raw.renalAdjustment, 'egfrBand'),
+    hepaticAdjustment: bands(raw.hepaticAdjustment, 'severityBand'),
+    genericKey: stringOr(raw.genericKey, ''),
+    refIds: intList(raw.refIds),
+  };
+}
+
+function normalizeFacetAnchors(raw: Json): Record<string, string> {
+  if (!isPlainObject(raw)) return {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const key = k.trim();
+    const val = stringOr(v, '').trim();
+    if (key && val) out[key] = val;
+  }
+  return out;
+}
 
 function parseDate(raw: Json): Date | null {
   const str = stringOr(raw, '');
@@ -249,6 +314,7 @@ export function normalizeTopic(json: Record<string, Json>): NormalizedTopic {
         adverseEffectManagement: stringOr(d.adverseEffectManagement ?? d.adverseEffects, ''),
         monitoring: stringOr(d.monitoring, ''),
         genericKeys: rawList(d.genericKeys ?? d.medicineGenericKeys).map((k) => String(k)),
+        doseSpec: normalizeDoseSpec(d.doseSpec),
       })),
       relapseRemission: stringList(json.relapseRemission),
       patientEducation: stringList(json.patientEducation),
@@ -264,6 +330,19 @@ export function normalizeTopic(json: Record<string, Json>): NormalizedTopic {
         estimate: stringOr(p.estimate, ''),
         source: stringOr(p.source, ''),
         doi: stringOr(p.doi, ''),
+      })),
+      // v5 standard fields (contentStandard "v5" topics; harmless empties on
+      // legacy/v4 content).
+      contentStandard: stringOr(json.contentStandard, ''),
+      referenceStyle: stringOr(json.referenceStyle, ''),
+      canonicalTopicId: stringOr(json.canonicalTopicId, ''),
+      facetAnchors: normalizeFacetAnchors(json.facetAnchors),
+      drugInteractionFlags: mapList(json.drugInteractionFlags).map((f) => ({
+        type: stringOr(f.type, ''),
+        subject: stringOr(f.subject, ''),
+        action: stringOr(f.action, ''),
+        severity: stringOr(f.severity, '') || null,
+        refIds: intList(f.refIds),
       })),
       preciseDosing: mapList(json.preciseDosing).map((p) => ({
         drug: stringOr(p.drug, ''),

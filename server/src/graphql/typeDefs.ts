@@ -36,6 +36,43 @@ export const typeDefs = `#graphql
     detail: String!
   }
 
+  type RenalAdjustmentBand {
+    egfrBand: String!
+    action: String!
+  }
+
+  type HepaticAdjustmentBand {
+    severityBand: String!
+    action: String!
+  }
+
+  type DoseSpec {
+    amount: Float!
+    unit: String!
+    route: String!
+    frequency: String!
+    durationDays: Int
+    maxDosePerDay: String!
+    taperSchedule: String
+    renalAdjustment: [RenalAdjustmentBand!]!
+    hepaticAdjustment: [HepaticAdjustmentBand!]!
+    genericKey: String!
+    refIds: [Int!]!
+  }
+
+  type DrugInteractionFlag {
+    type: String!
+    subject: String!
+    action: String!
+    severity: String
+    refIds: [Int!]!
+  }
+
+  type FacetAnchor {
+    facetTopicId: String!
+    sectionHeading: String!
+  }
+
   type DrugRegimen {
     drug: String!
     indication: String!
@@ -47,6 +84,7 @@ export const typeDefs = `#graphql
     adverseEffectManagement: String!
     monitoring: String!
     genericKeys: [String!]!
+    doseSpec: DoseSpec
   }
 
   type ContentPoint {
@@ -119,6 +157,11 @@ export const typeDefs = `#graphql
     curriculumRefs: [String!]!
     prognosisQuantitative: [PrognosisQuantitativeEntry!]!
     preciseDosing: [PreciseDosingEntry!]!
+    contentStandard: String!
+    referenceStyle: String!
+    canonicalTopicId: String!
+    facetAnchors: [FacetAnchor!]!
+    drugInteractionFlags: [DrugInteractionFlag!]!
   }
 
   type TopicConnection {
