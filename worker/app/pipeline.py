@@ -3,12 +3,13 @@ pipeline.py — the server-side v5 enrichment pipeline.
 
 Flow for one job:
   research  → Crossref reference discovery + per-DOI re-verification
-  generate  → Gemini section-group generation (JSON mode), citing only real refs
+  generate  → LLM section-group generation (JSON mode), citing only real refs
+              (provider/model/key from job["llm"], else Gemini env fallback)
   assemble  → merge groups into one v5 topic dict (contentStandard "v5":
               doseSpec on every drugRegimens entry, drugInteractionFlags,
               no worker-authored cross-topic links)
   validate  → bundled vendor/validate_topic.py as a subprocess (gate)
-  repair    → feed validator errors back to Gemini, up to MAX_REPAIR_PASSES (default 3)
+  repair    → feed validator errors back to the LLM, up to MAX_REPAIR_PASSES (default 3)
   bypass    → if still failing after max repairs: ingest anyway for board review
               (KH_WORKER_VALIDATOR_BYPASS=1, default on) with bypass flag on report
   callback  → signed POST of progress / completed / failed to callback_url
@@ -32,16 +33,15 @@ from urllib.parse import urlparse
 
 import httpx
 
-from . import security
+from . import llm, security
 
 # --- Paths --------------------------------------------------------------------
 WORKER_ROOT = Path(__file__).resolve().parent.parent
 VALIDATOR = WORKER_ROOT / "vendor" / "validate_topic.py"
 
-# --- Config from env ----------------------------------------------------------
+# --- Config from env (fallback when job has no llm block) ---------------------
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("KH_WORKER_GEMINI_MODEL", "gemini-2.5-flash")
-GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 CROSSREF_MAILTO = os.environ.get("KH_WORKER_CROSSREF_MAILTO", "dev@doctorshero.com")
 USER_AGENT = f"DoctorsHero-KH-Worker/1.0 (+https://doctorshero.com; mailto:{CROSSREF_MAILTO})"
 MAX_REPAIR_PASSES = int(os.environ.get("KH_WORKER_MAX_REPAIR_PASSES", "3") or "3")
@@ -51,19 +51,20 @@ VALIDATOR_BYPASS_AFTER_REPAIRS = os.environ.get(
     "KH_WORKER_VALIDATOR_BYPASS", "1"
 ).strip().lower() not in ("0", "false", "no", "off")
 
-# Gemini 2.5 Flash list prices (USD / 1M tokens) — overridable via env.
+# Default pricing (overridden per-job from llm.input/output_usd_per_m).
 INPUT_USD_PER_M = float(os.environ.get("KH_WORKER_GEMINI_INPUT_USD_PER_M", "0.15") or "0.15")
 OUTPUT_USD_PER_M = float(os.environ.get("KH_WORKER_GEMINI_OUTPUT_USD_PER_M", "0.60") or "0.60")
 
 
 class UsageTracker:
-    """Accumulate Gemini token usage for one enrichment job."""
+    """Accumulate LLM token usage for one enrichment job."""
 
-    def __init__(self) -> None:
+    def __init__(self, cfg: "llm.LlmConfig | None" = None) -> None:
         self.prompt_tokens = 0
         self.output_tokens = 0
         self.total_tokens = 0
         self.calls = 0
+        self.cfg = cfg
 
     def add(self, usage: dict | None) -> None:
         if not usage:
@@ -78,29 +79,38 @@ class UsageTracker:
 
     @property
     def cost_usd(self) -> float:
+        in_rate = self.cfg.input_usd_per_m if self.cfg else INPUT_USD_PER_M
+        out_rate = self.cfg.output_usd_per_m if self.cfg else OUTPUT_USD_PER_M
         return round(
-            (self.prompt_tokens / 1_000_000.0) * INPUT_USD_PER_M
-            + (self.output_tokens / 1_000_000.0) * OUTPUT_USD_PER_M,
+            (self.prompt_tokens / 1_000_000.0) * in_rate
+            + (self.output_tokens / 1_000_000.0) * out_rate,
             6,
         )
 
     def as_dict(self) -> dict:
+        model = self.cfg.model if self.cfg else GEMINI_MODEL
+        provider = self.cfg.provider if self.cfg else "gemini"
+        in_rate = self.cfg.input_usd_per_m if self.cfg else INPUT_USD_PER_M
+        out_rate = self.cfg.output_usd_per_m if self.cfg else OUTPUT_USD_PER_M
         return {
             "prompt_tokens": self.prompt_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
-            "gemini_calls": self.calls,
+            "gemini_calls": self.calls,  # legacy field name kept for callbacks
+            "llm_calls": self.calls,
             "cost_usd": self.cost_usd,
-            "model": GEMINI_MODEL,
+            "provider": provider,
+            "model": model,
             "pricing": {
-                "input_usd_per_million": INPUT_USD_PER_M,
-                "output_usd_per_million": OUTPUT_USD_PER_M,
+                "input_usd_per_million": in_rate,
+                "output_usd_per_million": out_rate,
             },
         }
 
 
 # Thread-local-ish: set per run_pipeline invocation.
 _CURRENT_USAGE: UsageTracker | None = None
+_CURRENT_LLM: "llm.LlmConfig | None" = None
 
 
 def estimate_enrichment_cost() -> dict:
@@ -119,12 +129,14 @@ def estimate_enrichment_cost() -> dict:
         "estimated_prompt_tokens": est_prompt,
         "estimated_output_tokens": est_output,
         "estimated_gemini_calls": est_calls,
+        "estimated_llm_calls": est_calls,
         "estimated_cost_usd": cost,
         "estimated_cost_usd_min": round(cost * 0.6, 4),
         "estimated_cost_usd_max": round(cost * 1.8, 4),
+        "provider": "gemini",
         "model": GEMINI_MODEL,
         "currency": "USD",
-        "note": "Google Gemini API bill estimate (not DoctorsHero doctor AI credits). Actual varies with repairs.",
+        "note": "Worker env fallback estimate. Admin UI prefers Laravel kh_llm_settings rates.",
         "pricing": {
             "input_usd_per_million": INPUT_USD_PER_M,
             "output_usd_per_million": OUTPUT_USD_PER_M,
@@ -484,47 +496,12 @@ def research_references(title: str, specialty: str, chapter: str) -> list[dict]:
 
 
 # =============================================================================
-# Generation stage — Gemini
+# Generation stage — multi-provider LLM (see llm.py)
 # =============================================================================
-def _gemini_generate(prompt: str, retries: int = 5) -> str:
-    if not GEMINI_API_KEY:
-        raise RuntimeError("GEMINI_API_KEY is not set")
-    url = f"{GEMINI_BASE}/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "temperature": 0.4,
-            "maxOutputTokens": 65536,
-        },
-    }
-    delay = 2.0
-    last_err = ""
-    for attempt in range(retries):
-        try:
-            resp = httpx.post(url, json=payload, timeout=180.0)
-            if resp.status_code in (429, 500, 502, 503, 504):
-                last_err = f"HTTP {resp.status_code}"
-                time.sleep(delay)
-                delay = min(delay * 2, 60)
-                continue
-            resp.raise_for_status()
-            data = resp.json()
-            if _CURRENT_USAGE is not None:
-                _CURRENT_USAGE.add(data.get("usageMetadata") or data.get("usage"))
-            candidates = data.get("candidates", [])
-            if not candidates:
-                last_err = "no candidates"
-                time.sleep(delay)
-                delay = min(delay * 2, 60)
-                continue
-            parts = candidates[0].get("content", {}).get("parts", [])
-            return "".join(p.get("text", "") for p in parts)
-        except httpx.HTTPError as exc:
-            last_err = str(exc)
-            time.sleep(delay)
-            delay = min(delay * 2, 60)
-    raise RuntimeError(f"Gemini generation failed after {retries} attempts: {last_err}")
+def _llm_generate(prompt: str, retries: int = 5) -> str:
+    if _CURRENT_LLM is None:
+        raise RuntimeError("LLM config not set for this job")
+    return llm.generate_json(prompt, _CURRENT_LLM, _CURRENT_USAGE, retries=retries)
 
 
 def _references_block(references: list[dict]) -> str:
@@ -567,7 +544,7 @@ def generate_groups(title: str, specialty: str, chapter: str, references: list[d
     n = len(GROUPS)
     for idx, group in enumerate(GROUPS):
         prompt = _build_prompt(group, title, specialty, chapter, references)
-        raw = _gemini_generate(prompt)
+        raw = _llm_generate(prompt)
         part = _extract_json(raw)
         merged.update(part)
         pct = 30 + int(40 * (idx + 1) / n)  # generation spans ~30-70%
@@ -701,7 +678,7 @@ def _repair(title: str, specialty: str, chapter: str, references: list[dict],
     merged: dict = {}
     for group in GROUPS:
         prompt = _build_prompt(group, title, specialty, chapter, references, repair_note=error_note)
-        raw = _gemini_generate(prompt)
+        raw = _llm_generate(prompt)
         merged.update(_extract_json(raw))
     return merged
 
@@ -711,15 +688,35 @@ def _repair(title: str, specialty: str, chapter: str, references: list[dict],
 # =============================================================================
 def run_pipeline(job: dict, on_done=None) -> None:
     """Execute the full pipeline for one job dict:
-    {job_id, topic_id, title, specialty, chapter, callback_url}."""
-    global _CURRENT_USAGE
+    {job_id, topic_id, title, specialty, chapter, callback_url, llm?}."""
+    global _CURRENT_USAGE, _CURRENT_LLM
     job_id = job["job_id"]
     topic_id = job["topic_id"]
     title = job["title"]
     specialty = job.get("specialty", "")
     chapter = job.get("chapter", specialty)
     callback_url = job["callback_url"]
-    _CURRENT_USAGE = UsageTracker()
+    try:
+        _CURRENT_LLM = llm.LlmConfig.from_job(job)
+    except Exception as exc:
+        _CURRENT_LLM = None
+        _CURRENT_USAGE = UsageTracker()
+        _post_signed(
+            callback_url,
+            {
+                "job_id": job_id,
+                "topic_id": topic_id,
+                "status": "failed",
+                "error": f"invalid LLM config: {exc}",
+                "validator_report": None,
+                "usage": _CURRENT_USAGE.as_dict(),
+            },
+        )
+        if on_done:
+            on_done(job_id)
+        return
+
+    _CURRENT_USAGE = UsageTracker(_CURRENT_LLM)
 
     def usage_payload() -> dict:
         return _CURRENT_USAGE.as_dict() if _CURRENT_USAGE else {}
@@ -835,5 +832,6 @@ def run_pipeline(job: dict, on_done=None) -> None:
         )
     finally:
         _CURRENT_USAGE = None
+        _CURRENT_LLM = None
         if on_done:
             on_done(job_id)
