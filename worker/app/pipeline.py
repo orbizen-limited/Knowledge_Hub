@@ -65,6 +65,8 @@ class UsageTracker:
         self.total_tokens = 0
         self.calls = 0
         self.cfg = cfg
+        self.primary_refused = False
+        self.fallback_used = False
 
     def add(self, usage: dict | None) -> None:
         if not usage:
@@ -76,6 +78,12 @@ class UsageTracker:
         self.output_tokens += output
         self.total_tokens += total
         self.calls += 1
+
+    def mark_primary_refused(self) -> None:
+        self.primary_refused = True
+
+    def mark_fallback_used(self) -> None:
+        self.fallback_used = True
 
     @property
     def cost_usd(self) -> float:
@@ -96,11 +104,13 @@ class UsageTracker:
             "prompt_tokens": self.prompt_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
-            "gemini_calls": self.calls,  # legacy field name kept for callbacks
+            "gemini_calls": self.calls,
             "llm_calls": self.calls,
             "cost_usd": self.cost_usd,
             "provider": provider,
             "model": model,
+            "primary_refused": self.primary_refused,
+            "fallback_used": self.fallback_used,
             "pricing": {
                 "input_usd_per_million": in_rate,
                 "output_usd_per_million": out_rate,
@@ -111,6 +121,7 @@ class UsageTracker:
 # Thread-local-ish: set per run_pipeline invocation.
 _CURRENT_USAGE: UsageTracker | None = None
 _CURRENT_LLM: "llm.LlmConfig | None" = None
+_CURRENT_FALLBACK: "llm.LlmConfig | None" = None
 
 
 def estimate_enrichment_cost() -> dict:
@@ -501,7 +512,13 @@ def research_references(title: str, specialty: str, chapter: str) -> list[dict]:
 def _llm_generate(prompt: str, retries: int = 5) -> str:
     if _CURRENT_LLM is None:
         raise RuntimeError("LLM config not set for this job")
-    return llm.generate_json(prompt, _CURRENT_LLM, _CURRENT_USAGE, retries=retries)
+    return llm.generate_json_with_fallback(
+        prompt,
+        _CURRENT_LLM,
+        _CURRENT_FALLBACK,
+        _CURRENT_USAGE,
+        retries=retries,
+    )
 
 
 def _references_block(references: list[dict]) -> str:
@@ -689,7 +706,7 @@ def _repair(title: str, specialty: str, chapter: str, references: list[dict],
 def run_pipeline(job: dict, on_done=None) -> None:
     """Execute the full pipeline for one job dict:
     {job_id, topic_id, title, specialty, chapter, callback_url, llm?}."""
-    global _CURRENT_USAGE, _CURRENT_LLM
+    global _CURRENT_USAGE, _CURRENT_LLM, _CURRENT_FALLBACK
     job_id = job["job_id"]
     topic_id = job["topic_id"]
     title = job["title"]
@@ -698,8 +715,10 @@ def run_pipeline(job: dict, on_done=None) -> None:
     callback_url = job["callback_url"]
     try:
         _CURRENT_LLM = llm.LlmConfig.from_job(job)
+        _CURRENT_FALLBACK = llm.LlmConfig.fallback_from_job(job)
     except Exception as exc:
         _CURRENT_LLM = None
+        _CURRENT_FALLBACK = None
         _CURRENT_USAGE = UsageTracker()
         _post_signed(
             callback_url,
@@ -833,5 +852,6 @@ def run_pipeline(job: dict, on_done=None) -> None:
     finally:
         _CURRENT_USAGE = None
         _CURRENT_LLM = None
+        _CURRENT_FALLBACK = None
         if on_done:
             on_done(job_id)

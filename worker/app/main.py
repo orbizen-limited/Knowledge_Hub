@@ -27,11 +27,11 @@ from fastapi.responses import JSONResponse
 
 load_dotenv()
 
-from . import pipeline, security  # noqa: E402  (env must load first)
+from . import batch_pipeline, pipeline, security  # noqa: E402  (env must load first)
 
 MAX_CONCURRENT = int(os.environ.get("KH_WORKER_MAX_CONCURRENT", "1") or "1")
 
-app = FastAPI(title="DoctorsHero Knowledge Hub Enrichment Worker", version="1.0")
+app = FastAPI(title="DoctorsHero Knowledge Hub Enrichment Worker", version="1.1")
 
 _executor = ThreadPoolExecutor(max_workers=MAX_CONCURRENT)
 _active_lock = threading.Lock()
@@ -99,3 +99,65 @@ async def enrich(request: Request):
     _executor.submit(pipeline.run_pipeline, payload, _job_finished)
 
     return JSONResponse({"accepted": True, "job_id": job_id}, status_code=202)
+
+
+@app.post("/v1/enrich-batch")
+async def enrich_batch(request: Request):
+    """Bulk Batch-API enrichment. Topic count is dynamic (topics[] length)."""
+    raw = await request.body()
+    body = raw.decode("utf-8")
+    path = request.url.path
+
+    try:
+        security.verify_inbound(
+            method=request.method,
+            path=path,
+            body=body,
+            headers=dict(request.headers),
+        )
+    except ValueError as exc:
+        return JSONResponse(
+            {"success": False, "message": "Unauthorized", "reason": str(exc)},
+            status_code=401,
+        )
+
+    try:
+        payload = json.loads(body)
+    except (ValueError, TypeError):
+        return JSONResponse({"accepted": False, "message": "invalid JSON body"}, status_code=422)
+
+    if not payload.get("batch_id") or not payload.get("callback_url"):
+        return JSONResponse(
+            {"accepted": False, "message": "missing batch_id or callback_url"},
+            status_code=422,
+        )
+    topics = payload.get("topics") or []
+    if not isinstance(topics, list) or not topics:
+        return JSONResponse(
+            {"accepted": False, "message": "topics[] required (non-empty)"},
+            status_code=422,
+        )
+    for i, t in enumerate(topics):
+        if not isinstance(t, dict) or not t.get("job_id") or not t.get("topic_id"):
+            return JSONResponse(
+                {"accepted": False, "message": f"topics[{i}] needs job_id and topic_id"},
+                status_code=422,
+            )
+
+    batch_id = str(payload["batch_id"])
+    _job_started(f"batch:{batch_id}")
+    _executor.submit(
+        batch_pipeline.run_batch_pipeline,
+        payload,
+        lambda _bid: _job_finished(f"batch:{batch_id}"),
+    )
+
+    return JSONResponse(
+        {
+            "accepted": True,
+            "batch_id": batch_id,
+            "topic_count": len(topics),
+            "external_batch_id": None,  # filled after provider submit via callback
+        },
+        status_code=202,
+    )

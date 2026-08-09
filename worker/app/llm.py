@@ -6,6 +6,10 @@ Providers:
   openai       → OpenAI chat completions (response_format json_object)
   openrouter   → OpenAI-compatible via OpenRouter
   huggingface  → OpenAI-compatible via Hugging Face Inference Router
+  deepseek     → OpenAI-compatible via DeepSeek
+  grok         → OpenAI-compatible via xAI
+  qwen         → OpenAI-compatible via DashScope (intl)
+  kimi         → OpenAI-compatible via Moonshot
   custom       → any OpenAI-compatible base_url
   anthropic    → Anthropic Messages API (JSON extracted from text)
 
@@ -33,7 +37,22 @@ DEFAULT_BASE_URLS = {
     "anthropic": "https://api.anthropic.com",
     "openrouter": "https://openrouter.ai/api/v1",
     "huggingface": "https://router.huggingface.co/v1",
+    "deepseek": "https://api.deepseek.com/v1",
+    "grok": "https://api.x.ai/v1",
+    "qwen": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "kimi": "https://api.moonshot.ai/v1",
 }
+
+OPENAI_COMPAT_PROVIDERS = frozenset({
+    "openai",
+    "openrouter",
+    "huggingface",
+    "deepseek",
+    "grok",
+    "qwen",
+    "kimi",
+    "custom",
+})
 
 
 @dataclass
@@ -46,9 +65,9 @@ class LlmConfig:
     output_usd_per_m: float
 
     @classmethod
-    def from_job(cls, job: dict | None) -> "LlmConfig":
-        llm = (job or {}).get("llm") or {}
-        provider = str(llm.get("provider") or "gemini").strip().lower() or "gemini"
+    def from_dict(cls, llm: dict | None, *, default_provider: str = "gemini") -> "LlmConfig":
+        llm = llm or {}
+        provider = str(llm.get("provider") or default_provider).strip().lower() or default_provider
         model = str(llm.get("model") or "").strip() or (
             GEMINI_ENV_MODEL if provider == "gemini" else ""
         )
@@ -89,6 +108,97 @@ class LlmConfig:
             output_usd_per_m=out_rate,
         )
 
+    @classmethod
+    def from_job(cls, job: dict | None) -> "LlmConfig":
+        return cls.from_dict((job or {}).get("llm") or {})
+
+    @classmethod
+    def fallback_from_job(cls, job: dict | None) -> "LlmConfig | None":
+        """Optional refusal-fallback config nested under job['llm']['fallback']."""
+        llm = (job or {}).get("llm") or {}
+        fb = llm.get("fallback")
+        if not isinstance(fb, dict) or not fb.get("api_key") or not fb.get("provider"):
+            return None
+        try:
+            return cls.from_dict(fb)
+        except Exception:
+            return None
+
+
+_REFUSAL_MARKERS = (
+    "i cannot",
+    "i can't",
+    "i’m unable",
+    "i'm unable",
+    "as an ai",
+    "as a language model",
+    "i am not able",
+    "i'm not able",
+    "i won’t",
+    "i won't",
+    "against my guidelines",
+    "violates",
+    "i must refuse",
+    "cannot assist with",
+    "can't assist with",
+    "unable to provide",
+    "not appropriate",
+)
+
+
+def looks_like_refusal(text: str | None) -> bool:
+    """Heuristic: empty, non-JSON prose, or common policy-refusal phrases."""
+    if text is None:
+        return True
+    raw = str(text).strip()
+    if not raw:
+        return True
+    lower = raw.lower()
+    # Prefer JSON detection — if it parses as object/array, treat as content
+    try:
+        candidate = raw
+        if candidate.startswith("```"):
+            candidate = candidate.strip("`")
+            if candidate.lower().startswith("json"):
+                candidate = candidate[4:].lstrip()
+        start = candidate.find("{")
+        end = candidate.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            parsed = json.loads(candidate[start : end + 1])
+            if isinstance(parsed, dict) and len(parsed) > 0:
+                return False
+    except (ValueError, TypeError):
+        pass
+
+    for marker in _REFUSAL_MARKERS:
+        if marker in lower:
+            return True
+    # Short non-JSON prose without braces is almost always a refusal/error
+    if "{" not in raw and len(raw) < 400:
+        return True
+    return False
+
+
+def generate_json_with_fallback(
+    prompt: str,
+    primary: LlmConfig,
+    fallback: LlmConfig | None,
+    usage_tracker=None,
+    retries: int = 5,
+) -> str:
+    """Generate JSON; if primary refuses/empty, retry once with fallback."""
+    text = generate_json(prompt, primary, usage_tracker, retries=retries)
+    if not looks_like_refusal(text):
+        return text
+    if fallback is None:
+        return text
+    if usage_tracker is not None and hasattr(usage_tracker, "mark_primary_refused"):
+        usage_tracker.mark_primary_refused()
+    text2 = generate_json(prompt, fallback, usage_tracker, retries=max(2, retries // 2))
+    if usage_tracker is not None and hasattr(usage_tracker, "mark_fallback_used"):
+        usage_tracker.mark_fallback_used()
+    return text2
+
 
 def generate_json(prompt: str, cfg: LlmConfig, usage_tracker=None, retries: int = 5) -> str:
     """Return model text that should be JSON. Tracks usage when tracker provided."""
@@ -96,7 +206,7 @@ def generate_json(prompt: str, cfg: LlmConfig, usage_tracker=None, retries: int 
         return _gemini(prompt, cfg, usage_tracker, retries)
     if cfg.provider == "anthropic":
         return _anthropic(prompt, cfg, usage_tracker, retries)
-    if cfg.provider in ("openai", "openrouter", "huggingface", "custom"):
+    if cfg.provider in OPENAI_COMPAT_PROVIDERS:
         return _openai_compat(prompt, cfg, usage_tracker, retries)
     raise RuntimeError(f"Unsupported LLM provider: {cfg.provider}")
 
