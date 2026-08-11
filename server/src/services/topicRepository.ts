@@ -51,6 +51,7 @@ const CONTENT_LIST_FIELDS = [
   'preciseDosing',
   'reviewLog',
   'drugInteractionFlags',
+  'media',
 ] as const;
 
 // v5 scalar metadata carried inside the content jsonb (absent on legacy rows).

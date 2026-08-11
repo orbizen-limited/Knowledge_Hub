@@ -12,6 +12,7 @@ Flow for one job:
   repair    → feed validator errors back to the LLM, up to MAX_REPAIR_PASSES (default 3)
   bypass    → if still failing after max repairs: ingest anyway for board review
               (KH_WORKER_VALIDATOR_BYPASS=1, default on) with bypass flag on report
+  media     → v6 only: propose + SSRF-safe fetch + Laravel store (never fails text)
   callback  → signed POST of progress / completed / failed to callback_url
 
 Every network stage emits a signed progress callback. All callbacks (progress,
@@ -33,7 +34,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from . import llm, security
+from . import llm, media, security
 
 # --- Paths --------------------------------------------------------------------
 WORKER_ROOT = Path(__file__).resolve().parent.parent
@@ -122,6 +123,8 @@ class UsageTracker:
 _CURRENT_USAGE: UsageTracker | None = None
 _CURRENT_LLM: "llm.LlmConfig | None" = None
 _CURRENT_FALLBACK: "llm.LlmConfig | None" = None
+# Admin-editable v5 rules from Laravel (job["llm"]["v5_prompt"]); None → V5_RULES.
+_CURRENT_V5_RULES: str | None = None
 
 
 def estimate_enrichment_cost() -> dict:
@@ -521,6 +524,12 @@ def _llm_generate(prompt: str, retries: int = 5) -> str:
     )
 
 
+def _active_v5_rules() -> str:
+    """Prefer admin-supplied prompt from the job payload; else builtin V5_RULES."""
+    custom = (_CURRENT_V5_RULES or "").strip()
+    return custom if custom else V5_RULES
+
+
 def _references_block(references: list[dict]) -> str:
     lines = [f"[{r['refId']}] {r['citation']} {r['url']}" for r in references]
     return "\n".join(lines)
@@ -529,7 +538,7 @@ def _references_block(references: list[dict]) -> str:
 def _build_prompt(group: dict, title: str, specialty: str, chapter: str,
                   references: list[dict], repair_note: str = "") -> str:
     return (
-        f"{V5_RULES}\n\n"
+        f"{_active_v5_rules()}\n\n"
         f"TOPIC TITLE: {title}\n"
         f"SPECIALTY: {specialty}\n"
         f"CHAPTER: {chapter}\n\n"
@@ -706,19 +715,23 @@ def _repair(title: str, specialty: str, chapter: str, references: list[dict],
 def run_pipeline(job: dict, on_done=None) -> None:
     """Execute the full pipeline for one job dict:
     {job_id, topic_id, title, specialty, chapter, callback_url, llm?}."""
-    global _CURRENT_USAGE, _CURRENT_LLM, _CURRENT_FALLBACK
+    global _CURRENT_USAGE, _CURRENT_LLM, _CURRENT_FALLBACK, _CURRENT_V5_RULES
     job_id = job["job_id"]
     topic_id = job["topic_id"]
     title = job["title"]
     specialty = job.get("specialty", "")
     chapter = job.get("chapter", specialty)
     callback_url = job["callback_url"]
+    llm_block = job.get("llm") if isinstance(job.get("llm"), dict) else {}
+    custom_rules = str((llm_block or {}).get("v5_prompt") or "").strip()
+    _CURRENT_V5_RULES = custom_rules or None
     try:
         _CURRENT_LLM = llm.LlmConfig.from_job(job)
         _CURRENT_FALLBACK = llm.LlmConfig.fallback_from_job(job)
     except Exception as exc:
         _CURRENT_LLM = None
         _CURRENT_FALLBACK = None
+        _CURRENT_V5_RULES = None
         _CURRENT_USAGE = UsageTracker()
         _post_signed(
             callback_url,
@@ -822,6 +835,8 @@ def run_pipeline(job: dict, on_done=None) -> None:
                     },
                 )
                 return
+
+        topic = media.attach_media(topic, job, callback_url, job_id, topic_id)
 
         _post_signed(
             callback_url,

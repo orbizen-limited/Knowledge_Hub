@@ -438,7 +438,7 @@ def main():
     # "contentStandard": "v5" — implies every v4 gate also applies as a hard
     # error (v5 is a superset standard), plus the v5-only gates below.
     ref_style = str(topic.get("referenceStyle") or "").strip().lower()
-    v5 = str(topic.get("contentStandard") or "").strip().lower() == "v5"
+    v5 = str(topic.get("contentStandard") or "").strip().lower() in ("v5", "v6")
     v4 = ref_style == "vancouver" or v5
 
     # ------------------------------------------------------------------

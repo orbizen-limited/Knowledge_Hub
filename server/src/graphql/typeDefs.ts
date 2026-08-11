@@ -68,6 +68,22 @@ export const typeDefs = `#graphql
     refIds: [Int!]!
   }
 
+  type TopicMediaItem {
+    id: String!
+    kind: String!
+    sectionKey: String!
+    title: String!
+    caption: String!
+    alt: String!
+    url: String!
+    posterUrl: String
+    sourceName: String!
+    license: String!
+    attribution: String!
+    relevance: String!
+    validated: Boolean!
+  }
+
   type FacetAnchor {
     facetTopicId: String!
     sectionHeading: String!
@@ -162,6 +178,7 @@ export const typeDefs = `#graphql
     canonicalTopicId: String!
     facetAnchors: [FacetAnchor!]!
     drugInteractionFlags: [DrugInteractionFlag!]!
+    media: [TopicMediaItem!]!
   }
 
   type TopicConnection {

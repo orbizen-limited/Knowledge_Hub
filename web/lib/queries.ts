@@ -69,6 +69,11 @@ export const TOPIC_DETAIL_QUERY = `#graphql
         drug indication standardDose doseReductionCriteria renalAdjustment
         hepaticAdjustment administration onsetOffset
       }
+      contentStandard
+      media {
+        id kind sectionKey title caption alt url posterUrl
+        sourceName license attribution relevance validated
+      }
     }
   }
 `;

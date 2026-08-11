@@ -16,7 +16,7 @@ from __future__ import annotations
 import sys
 import traceback
 
-from . import gemini_batch, llm, openai_compat_batch, pipeline
+from . import gemini_batch, llm, media, openai_compat_batch, pipeline
 
 BATCH_PROVIDERS = frozenset({"gemini", "qwen"})
 
@@ -58,6 +58,10 @@ def run_batch_pipeline(job: dict, on_done=None) -> None:
         if on_done:
             on_done(batch_id)
         return
+
+    llm_block = job.get("llm") if isinstance(job.get("llm"), dict) else {}
+    custom_rules = str((llm_block or {}).get("v5_prompt") or "").strip()
+    pipeline._CURRENT_V5_RULES = custom_rules or None
 
     if cfg.provider not in BATCH_PROVIDERS:
         _fail_all(
@@ -301,6 +305,8 @@ def run_batch_pipeline(job: dict, on_done=None) -> None:
                         "cost_usd": round(float(usage["cost_usd"]) * 0.5, 6),
                         "batch_discount_applied": 0.5,
                     }
+
+                topic = media.attach_media(topic, job, callback_url, job_id, topic_id)
 
                 pipeline._post_signed(
                     callback_url,

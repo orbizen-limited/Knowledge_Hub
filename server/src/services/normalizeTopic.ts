@@ -344,6 +344,30 @@ export function normalizeTopic(json: Record<string, Json>): NormalizedTopic {
         severity: stringOr(f.severity, '') || null,
         refIds: intList(f.refIds),
       })),
+      media: mapList(json.media).map((m) => {
+        const poster = stringOr(m.posterUrl ?? m.poster, '');
+        const validatedRaw = m.validated;
+        const validated =
+          validatedRaw === true ||
+          validatedRaw === 1 ||
+          (typeof validatedRaw === 'string' &&
+            ['true', '1', 'yes'].includes(validatedRaw.trim().toLowerCase()));
+        return {
+          id: stringOr(m.id, ''),
+          kind: stringOr(m.kind ?? m.type, 'image').toLowerCase(),
+          sectionKey: stringOr(m.sectionKey ?? m.section, '').toLowerCase(),
+          title: stringOr(m.title, ''),
+          caption: stringOr(m.caption, ''),
+          alt: stringOr(m.alt ?? m.altText, ''),
+          url: stringOr(m.url ?? m.src, ''),
+          posterUrl: poster === '' ? null : poster,
+          sourceName: stringOr(m.sourceName ?? m.source, ''),
+          license: stringOr(m.license, ''),
+          attribution: stringOr(m.attribution, ''),
+          relevance: stringOr(m.relevance, ''),
+          validated,
+        };
+      }),
       preciseDosing: mapList(json.preciseDosing).map((p) => ({
         drug: stringOr(p.drug, ''),
         indication: stringOr(p.indication, ''),
