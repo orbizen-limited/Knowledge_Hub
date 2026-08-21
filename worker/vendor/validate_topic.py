@@ -168,6 +168,17 @@ TREATMENT_DENSITY = {
     "treatment_min_total_chars": 30_000,
 }
 
+# v7: management-first unification. treatmentLines is REMOVED — stepwise
+# therapy lives only in managementSections. Combined length counts
+# managementSections + drugRegimens only (never treatmentLines).
+TREATMENT_DENSITY_V7 = {
+    "managementSections_min_blocks": 7,
+    "managementSections_min_points_per_block": 4,
+    "managementSections_min_point_chars": 150,
+    "drugRegimens_min_entries": 6,
+    "treatment_min_total_chars": 30_000,
+}
+
 # v4: sections whose prose is expected to carry Vancouver [N] citation markers
 # when a topic declares referenceStyle: "vancouver". managementSections and
 # diagnosisSections are checked per-ContentBlock; the others are checked as
@@ -434,11 +445,14 @@ def main():
     s = json.dumps(topic, ensure_ascii=False)
     char_count = len(s)
 
-    # Standard opt-in flags. v4: "referenceStyle": "vancouver". v5:
-    # "contentStandard": "v5" — implies every v4 gate also applies as a hard
-    # error (v5 is a superset standard), plus the v5-only gates below.
+    # Standard opt-in flags.
+    #   v4: "referenceStyle": "vancouver"
+    #   v5/v6: "contentStandard": "v5"|"v6" — implies every v4 gate
+    #   v7: "contentStandard": "v7" — implies v4+v5; drops treatmentLines
     ref_style = str(topic.get("referenceStyle") or "").strip().lower()
-    v5 = str(topic.get("contentStandard") or "").strip().lower() in ("v5", "v6")
+    cs = str(topic.get("contentStandard") or "").strip().lower()
+    v7 = cs == "v7"
+    v5 = cs in ("v5", "v6", "v7")
     v4 = ref_style == "vancouver" or v5
 
     # ------------------------------------------------------------------
@@ -769,12 +783,24 @@ def main():
             )
 
     tl = topic.get("treatmentLines", [])
-    if not isinstance(tl, list) or len(tl) == 0:
-        errors.append("treatmentLines section must be a non-empty list of TreatmentLine dicts ({line, description})")
+    if v7:
+        # REMOVED in v7: treatmentLines floors and the field itself.
+        if "treatmentLines" in topic:
+            errors.append(
+                "v7: treatmentLines is removed — omit the field entirely and "
+                "put all stepwise / line-of-therapy detail in managementSections"
+            )
+    elif not isinstance(tl, list) or len(tl) == 0:
+        errors.append(
+            "treatmentLines section must be a non-empty list of TreatmentLine "
+            "dicts ({line, description})"
+        )
     else:
         for t in tl:
             if not isinstance(t, dict) or not t.get("description"):
-                errors.append(f"treatmentLines entry missing required 'description' key: {t}")
+                errors.append(
+                    f"treatmentLines entry missing required 'description' key: {t}"
+                )
 
     content = topic.get("content") or topic
     sections_found = sum(1 for n in SECTION_NAMES if n in content)
@@ -848,8 +874,9 @@ def main():
         )
     if v4 and not cited:
         errors.append(
-            "v4/v5-standard topic but no [N] citation markers found in any "
-            "main-text section (referenceStyle 'vancouver' / contentStandard 'v5')"
+            "v4/v5/v7-standard topic but no [N] citation markers found in any "
+            "main-text section (referenceStyle 'vancouver' / contentStandard "
+            f"'{cs or 'vancouver'}')"
         )
 
     # Per-block citation coverage: every management/diagnosis ContentBlock
@@ -869,47 +896,78 @@ def main():
                 )
 
     # --- Treatment density ("management must never be thin") ---
-    td = TREATMENT_DENSITY
+    # v7: no treatmentLines floors; managementSections min blocks rises to 7;
+    # combined length = managementSections + drugRegimens only.
+    td = TREATMENT_DENSITY_V7 if v7 else TREATMENT_DENSITY
     mgmt = topic.get("managementSections", [])
     mgmt_chars = 0
     if isinstance(mgmt, list):
         if len(mgmt) < td["managementSections_min_blocks"]:
             _v4_fail(
-                f"managementSections has {len(mgmt)} blocks (< {td['managementSections_min_blocks']}) "
-                f"— management must be organised indication-wise, one block per clinical scenario"
+                f"managementSections has {len(mgmt)} blocks "
+                f"(< {td['managementSections_min_blocks']}) "
+                f"— management must be organised indication-wise, one block "
+                f"per clinical scenario"
+                + (" (v7 requires ≥7 pathway blocks)" if v7 else "")
             )
         for bi, b in enumerate(mgmt):
             if not isinstance(b, dict):
                 continue
-            pts = [p for p in b.get("points", []) if isinstance(p, dict) and str(p.get("text", "")).strip()]
+            pts = [
+                p for p in b.get("points", [])
+                if isinstance(p, dict) and str(p.get("text", "")).strip()
+            ]
             if len(pts) < td["managementSections_min_points_per_block"]:
                 _v4_fail(
-                    f"managementSections[{bi}] '{b.get('heading', '')[:50]}' has {len(pts)} points "
+                    f"managementSections[{bi}] '{b.get('heading', '')[:50]}' "
+                    f"has {len(pts)} points "
                     f"(< {td['managementSections_min_points_per_block']})"
                 )
-            thin = [p for p in pts if len(str(p.get("text", ""))) < td["managementSections_min_point_chars"]]
+            thin = [
+                p for p in pts
+                if len(str(p.get("text", ""))) < td["managementSections_min_point_chars"]
+            ]
             if thin:
                 _v4_fail(
-                    f"managementSections[{bi}] '{b.get('heading', '')[:50]}' has {len(thin)} point(s) under "
-                    f"{td['managementSections_min_point_chars']} chars — management bullets must carry "
-                    f"doses, thresholds and stop rules, not one-line labels"
+                    f"managementSections[{bi}] '{b.get('heading', '')[:50]}' "
+                    f"has {len(thin)} point(s) under "
+                    f"{td['managementSections_min_point_chars']} chars — "
+                    f"management bullets must carry doses, thresholds and "
+                    f"stop rules, not one-line labels"
                 )
             mgmt_chars += sum(len(str(p.get("text", ""))) for p in pts)
 
-    if isinstance(tl, list):
+    # REMOVED in v7: treatmentLines >= 4 / description >= 200 / counting
+    # treatmentLines toward the combined treatment-core length.
+    if not v7 and isinstance(tl, list):
         if len(tl) < td["treatmentLines_min_entries"]:
-            _v4_fail(f"treatmentLines has {len(tl)} entries (< {td['treatmentLines_min_entries']})")
+            _v4_fail(
+                f"treatmentLines has {len(tl)} entries "
+                f"(< {td['treatmentLines_min_entries']})"
+            )
         for ti, t in enumerate(tl):
-            if isinstance(t, dict) and len(str(t.get("description", ""))) < td["treatmentLines_min_description_chars"]:
+            if (
+                isinstance(t, dict)
+                and len(str(t.get("description", "")))
+                < td["treatmentLines_min_description_chars"]
+            ):
                 _v4_fail(
-                    f"treatmentLines[{ti}] '{str(t.get('line', ''))[:40]}' description under "
+                    f"treatmentLines[{ti}] '{str(t.get('line', ''))[:40]}' "
+                    f"description under "
                     f"{td['treatmentLines_min_description_chars']} chars"
                 )
-        mgmt_chars += sum(len(str(t.get("description", ""))) for t in tl if isinstance(t, dict))
+        mgmt_chars += sum(
+            len(str(t.get("description", "")))
+            for t in tl
+            if isinstance(t, dict)
+        )
 
     if isinstance(dreg, list):
         if len(dreg) < td["drugRegimens_min_entries"]:
-            _v4_fail(f"drugRegimens has {len(dreg)} entries (< {td['drugRegimens_min_entries']})")
+            _v4_fail(
+                f"drugRegimens has {len(dreg)} entries "
+                f"(< {td['drugRegimens_min_entries']})"
+            )
         for di, dr in enumerate(dreg):
             if not isinstance(dr, dict):
                 continue
@@ -922,15 +980,25 @@ def main():
                     missing.append(k)
             if missing:
                 _v4_fail(
-                    f"drugRegimens[{di}] '{dr.get('drug', '')}' missing/empty: {', '.join(missing)}"
+                    f"drugRegimens[{di}] '{dr.get('drug', '')}' "
+                    f"missing/empty: {', '.join(missing)}"
                 )
-            mgmt_chars += sum(len(str(dr.get(k, ""))) for k in DRUG_REGIMEN_FIELDS if k != "genericKeys")
+            mgmt_chars += sum(
+                len(str(dr.get(k, "")))
+                for k in DRUG_REGIMEN_FIELDS
+                if k != "genericKeys"
+            )
 
     if mgmt_chars < td["treatment_min_total_chars"]:
+        core_label = (
+            "managementSections + drugRegimens"
+            if v7
+            else "managementSections + treatmentLines + drugRegimens"
+        )
         _v4_fail(
-            f"treatment core (managementSections + treatmentLines + drugRegimens) is "
-            f"{mgmt_chars:,} chars (< {td['treatment_min_total_chars']:,}) — management must be the "
-            f"densest part of the topic, not a summary"
+            f"treatment core ({core_label}) is {mgmt_chars:,} chars "
+            f"(< {td['treatment_min_total_chars']:,}) — management must be "
+            f"the densest part of the topic, not a summary"
         )
 
     # ------------------------------------------------------------------
@@ -1096,9 +1164,11 @@ def main():
                 )
 
     std_line = (
-        "v5 — all v4 + v5 gates enforced as errors" if v5
+        "v7 — all v4 + v5 gates; treatmentLines removed (management-first)"
+        if v7
+        else "v5 — all v4 + v5 gates enforced as errors" if v5
         else "v4 (vancouver) — gates enforced as errors" if v4
-        else "legacy — v4/v5 gates reported as warnings"
+        else "legacy — v4/v5/v7 gates reported as warnings"
     )
     print(f"topic:    {title}")
     print(f"id:       {topic_id}")

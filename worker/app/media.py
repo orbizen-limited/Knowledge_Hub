@@ -96,25 +96,28 @@ def attach_media(topic: dict, job: dict, callback_url: str, job_id: str, topic_i
     from . import pipeline  # late import: pipeline.py imports this module
 
     llm_block = job.get("llm") if isinstance(job.get("llm"), dict) else {}
-    std = str((llm_block or {}).get("content_standard") or "v5").strip().lower()
-    if std != "v6":
-        _log(f"[media] skip stage (content_standard={std or 'missing'})")
-        topic["contentStandard"] = "v5"
-        topic["media"] = []
+    std = str((llm_block or {}).get("content_standard") or "v7").strip().lower()
+    if std == "v6":
+        topic["contentStandard"] = "v6"
+        try:
+            # Never ping progress for offline backfill (would reopen a finished job).
+            if not str(job_id).startswith("backfill"):
+                pipeline._progress(callback_url, job_id, topic_id, "media", 92)
+            topic["media"] = _run_media_stage(
+                topic, llm_block or {}, callback_url, job_id, topic_id
+            )
+            _log(f"[media] stored {len(topic['media'])} item(s) for {topic_id}")
+        except Exception as exc:  # noqa: BLE001 — media must never fail the text job
+            _log(f"[media] stage failed (text job continues): {exc}")
+            topic["media"] = []
         return topic
 
-    topic["contentStandard"] = "v6"
-    try:
-        # Never ping progress for offline backfill (would reopen a finished job).
-        if not str(job_id).startswith("backfill"):
-            pipeline._progress(callback_url, job_id, topic_id, "media", 92)
-        topic["media"] = _run_media_stage(
-            topic, llm_block or {}, callback_url, job_id, topic_id
-        )
-        _log(f"[media] stored {len(topic['media'])} item(s) for {topic_id}")
-    except Exception as exc:  # noqa: BLE001 — media must never fail the text job
-        _log(f"[media] stage failed (text job continues): {exc}")
-        topic["media"] = []
+    # v7 (default) and legacy v5: keep the stamped standard; skip media stage
+    # unless content_standard explicitly requests v6.
+    if std not in ("v5", "v7"):
+        _log(f"[media] skip stage (content_standard={std or 'missing'})")
+    topic["contentStandard"] = "v7" if std == "v7" else ("v5" if std == "v5" else std or "v7")
+    topic["media"] = topic.get("media") if isinstance(topic.get("media"), list) else []
     return topic
 
 

@@ -1,13 +1,13 @@
 """
-pipeline.py — the server-side v5 enrichment pipeline.
+pipeline.py — the server-side Knowledge Hub enrichment pipeline (v7 default).
 
 Flow for one job:
   research  → Crossref reference discovery + per-DOI re-verification
   generate  → LLM section-group generation (JSON mode), citing only real refs
               (provider/model/key from job["llm"], else Gemini env fallback)
-  assemble  → merge groups into one v5 topic dict (contentStandard "v5":
+  assemble  → merge groups into one v7 topic dict (contentStandard "v7":
               doseSpec on every drugRegimens entry, drugInteractionFlags,
-              no worker-authored cross-topic links)
+              no treatmentLines, no worker-authored cross-topic links)
   validate  → bundled vendor/validate_topic.py as a subprocess (gate)
   repair    → feed validator errors back to the LLM, up to MAX_REPAIR_PASSES (default 3)
   bypass    → if still failing after max repairs: ingest anyway for board review
@@ -163,7 +163,7 @@ def estimate_enrichment_cost() -> dict:
 # Distilled from tools/tier1_enhance/prompts/master_topic_prompt.md plus the
 # v5 additions (skills/medical-content-quality-framework Part M): structured
 # doseSpec on every drug regimen, topic-level drugInteractionFlags, and
-# contentStandard "v5" (which makes every v4 gate a hard error too).
+# contentStandard "v7" (implies every v4+v5 gate; treatmentLines removed).
 # =============================================================================
 V5_RULES = """\
 You are a senior clinical editorial physician authoring a Tier-1 reference for the
@@ -172,10 +172,11 @@ decision-dense, current, traceable and machine-actionable than UpToDate/BMJ Best
 Practice. Every section must carry something a doctor could not recall precisely
 (a threshold, a number+CI, a titration step, a stop rule).
 
-This topic is authored to contentStandard "v5" — every v4 rule below is a HARD
-error, plus the v5 structured-dosing rules at the end.
+This topic is authored to contentStandard "v7" — every v4 + v5 rule below is a
+HARD error. The field treatmentLines is REMOVED: put all stepwise / line-of-therapy
+detail inside managementSections only.
 
-HARD RULES (v4 base):
+HARD RULES (v4 base + v7 management-first):
 - Output STRICT JSON only, matching the requested schema keys EXACTLY. No prose
   outside the JSON. No markdown fences.
 - NO fabrication. Cite ONLY the numbered references supplied to you, using inline
@@ -194,9 +195,12 @@ HARD RULES (v4 base):
 - ContentPoint objects are {"text": "...", "level": 0}. Points arrays must be non-empty.
 - comorbidityManagement / complicationManagement are lists of {"heading","detail"} with
   UNIQUE specific clinical headings (never generic "Management").
-- treatmentLines entries are {"line","description","medicineGenericKeys":[]} with
-  description >=200 chars.
-- managementSections >=5 indication-wise ContentBlocks, each >=4 points of >=150 chars.
+- Do NOT output treatmentLines. Merge first-/second-/third-line pathways, step-up/
+  step-down, duration, failure routes, and admission/discharge criteria into
+  managementSections.
+- managementSections >=7 ContentBlocks covering the clinical pathway (first-line,
+  second-line, refractory/adjunct, special populations, patient education, key pearls,
+  monitoring/follow-up). Each block >=4 points of >=150 chars with inline [N].
 - drugRegimens entries need ALL keys non-empty: drug, indication, initialDose,
   titration, maintenanceDose, termination, alternatives, adverseEffectManagement,
   monitoring, genericKeys[].
@@ -218,14 +222,14 @@ VALIDATOR HARD FLOORS (validate_topic.py — failing ANY of these fails the job)
 - prognosisQuantitative >= 5 entries with outcome + numeric estimate.
 - preciseDosing >= 2 entries, ALL 8 fields non-empty on each.
 - drugRegimens >= 6 entries; ALL 10 fields non-empty on each (incl. non-empty genericKeys[]).
-- treatmentLines >= 4 entries; each description >= 200 chars.
-- managementSections >= 5 blocks; each block >= 4 points; each point text >= 150 chars.
-- Combined management text (managementSections + treatmentLines + drugRegimens) >= 30,000 chars.
+- treatmentLines MUST be omitted (v7).
+- managementSections >= 7 blocks; each block >= 4 points; each point text >= 150 chars.
+- Combined management text (managementSections + drugRegimens) >= 30,000 chars.
 - comorbidityManagement and complicationManagement: non-empty lists of {heading, detail}
   with unique specific headings (no duplicate/generic placeholders).
 - Vancouver [N] required in EVERY managementSections / diagnosisSections ContentBlock.
 - Aggregate sections that claim evidence (summary, etiology, pathophys, presentation,
-  workup, treatmentLines, monitoring, complications, relapse, comorbidity/complication
+  workup, monitoring, complications, relapse, comorbidity/complication
   management) should carry [N] markers where claims are made.
 - ContentBlock headings must NOT be artificial numbered labels ("Item 1", "Day 3", etc.).
 
@@ -290,10 +294,10 @@ GROUPS = [
         "name": "management",
         "instruction": (
             "Generate the MANAGEMENT group. Return a JSON object with EXACTLY these keys:\n"
-            "  managementSections (array of >=5 ContentBlock objects {heading, points:[{text,level}]}, "
-            "organised indication-wise; each block >=4 points of >=150 chars; each block >=1 inline [N]),\n"
-            "  treatmentLines (array of >=4 objects {line, description, medicineGenericKeys:[]}; "
-            "description >=200 chars with [N]),\n"
+            "  managementSections (array of >=7 ContentBlock objects {heading, points:[{text,level}]}, "
+            "covering first-line, second-line, refractory/adjunct, special populations, patient education, "
+            "key pearls, and monitoring/follow-up; each block >=4 points of >=150 chars; each block >=1 "
+            "inline [N]; do NOT emit treatmentLines — fold all line-of-therapy detail into these blocks),\n"
             "  recommendations (array of >=8 objects {text, grade:'A'|'B'|'C', source, sourceUrl, evidenceLevel} "
             "with inline [N] in text)."
         ),
@@ -592,7 +596,7 @@ def assemble_topic(topic_id: str, title: str, specialty: str, chapter: str,
         "tier": "tier1",
         "contentVersion": 2,
         "reviewStatus": 0,
-        "contentStandard": "v5",
+        "contentStandard": "v7",
         "referenceStyle": "vancouver",
         "lastUpdated": datetime.now(timezone.utc).date().isoformat(),
         "agentGenerated": True,
@@ -607,7 +611,7 @@ def assemble_topic(topic_id: str, title: str, specialty: str, chapter: str,
     topic["tier"] = "tier1"
     topic["contentVersion"] = 2
     topic["reviewStatus"] = 0
-    topic["contentStandard"] = "v5"
+    topic["contentStandard"] = "v7"
     topic["referenceStyle"] = "vancouver"
     topic["agentGenerated"] = True
     topic["references"] = references
@@ -615,6 +619,8 @@ def assemble_topic(topic_id: str, title: str, specialty: str, chapter: str,
     # cross-topic links: any unresolvable entry is a hard v5 error.
     topic["crossReferences"] = []
     topic["relatedTopicIds"] = []
+    # v7: stepwise therapy lives in managementSections only
+    topic.pop("treatmentLines", None)
     return topic
 
 
