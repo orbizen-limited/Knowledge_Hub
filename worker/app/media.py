@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import ipaddress
 import json
+import os
 import re
 import socket
 import sys
@@ -96,7 +97,7 @@ def attach_media(topic: dict, job: dict, callback_url: str, job_id: str, topic_i
     from . import pipeline  # late import: pipeline.py imports this module
 
     llm_block = job.get("llm") if isinstance(job.get("llm"), dict) else {}
-    std = str((llm_block or {}).get("content_standard") or "v7").strip().lower()
+    std = str((llm_block or {}).get("content_standard") or pipeline.DEFAULT_CONTENT_STANDARD).strip().lower()
     if std == "v6":
         topic["contentStandard"] = "v6"
         try:
@@ -112,8 +113,30 @@ def attach_media(topic: dict, job: dict, callback_url: str, job_id: str, topic_i
             topic["media"] = []
         return topic
 
-    # v7 (default) and legacy v5: keep the stamped standard; skip media stage
-    # unless content_standard explicitly requests v6.
+    # v9 (default): keep QUERY-ONLY media from pass 4; no SSRF fetch unless VERIFIED.
+    if std == "v9":
+        topic["contentStandard"] = "v9"
+        media_mode = str(
+            (llm_block or {}).get("media_mode")
+            or os.environ.get("KH_WORKER_V9_MEDIA_MODE", "QUERY-ONLY")
+        ).strip().upper()
+        if media_mode == "VERIFIED":
+            try:
+                if not str(job_id).startswith("backfill"):
+                    pipeline._progress(callback_url, job_id, topic_id, "media", 92)
+                topic["media"] = _run_media_stage(
+                    topic, llm_block or {}, callback_url, job_id, topic_id
+                )
+                _log(f"[media] v9 VERIFIED stored {len(topic['media'])} item(s) for {topic_id}")
+            except Exception as exc:  # noqa: BLE001
+                _log(f"[media] v9 VERIFIED stage failed (text job continues): {exc}")
+        else:
+            existing = topic.get("media")
+            topic["media"] = existing if isinstance(existing, list) else []
+            _log(f"[media] v9 QUERY-ONLY keeping {len(topic['media'])} item(s) for {topic_id}")
+        return topic
+
+    # v7 and legacy v5: keep the stamped standard; skip media stage unless v6 requested.
     if std not in ("v5", "v7"):
         _log(f"[media] skip stage (content_standard={std or 'missing'})")
     topic["contentStandard"] = "v7" if std == "v7" else ("v5" if std == "v5" else std or "v7")

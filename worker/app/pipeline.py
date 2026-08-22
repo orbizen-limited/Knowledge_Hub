@@ -1,18 +1,19 @@
 """
-pipeline.py — the server-side Knowledge Hub enrichment pipeline (v7 default).
+pipeline.py — the server-side Knowledge Hub enrichment pipeline (v9 default).
 
 Flow for one job:
   research  → Crossref reference discovery + per-DOI re-verification
-  generate  → LLM section-group generation (JSON mode), citing only real refs
-              (provider/model/key from job["llm"], else Gemini env fallback)
-  assemble  → merge groups into one v7 topic dict (contentStandard "v7":
-              doseSpec on every drugRegimens entry, drugInteractionFlags,
-              no treatmentLines, no worker-authored cross-topic links)
-  validate  → bundled vendor/validate_topic.py as a subprocess (gate)
-  repair    → feed validator errors back to the LLM, up to MAX_REPAIR_PASSES (default 3)
+  generate  → v9: 4-pass MULTI-PASS generation (PART 7 of knowledge_hub_prompt_v9.md)
+              v7: legacy 5-group generation (content_standard=v7 only)
+  assemble  → v9: merge passes → {topic, media, _selfAudit} envelope
+              v7: flat topic dict (contentStandard "v7")
+  validate  → v9: vendor/validate_topic_v9.py (--json-report, per-key repair_keys)
+              v7: vendor/validate_topic.py (text report)
+  repair    → v9: regenerate only failing pass(es) by repair_key
+              v7: regenerate all groups with error feedback
   bypass    → if still failing after max repairs: ingest anyway for board review
               (KH_WORKER_VALIDATOR_BYPASS=1, default on) with bypass flag on report
-  media     → v6 only: propose + SSRF-safe fetch + Laravel store (never fails text)
+  media     → v9: QUERY-ONLY searchDirectives (default); v6: fetch + store
   callback  → signed POST of progress / completed / failed to callback_url
 
 Every network stage emits a signed progress callback. All callbacks (progress,
@@ -34,11 +35,13 @@ from urllib.parse import urlparse
 
 import httpx
 
-from . import llm, media, security
+from . import llm, media, security, v9_generation
 
 # --- Paths --------------------------------------------------------------------
 WORKER_ROOT = Path(__file__).resolve().parent.parent
 VALIDATOR = WORKER_ROOT / "vendor" / "validate_topic.py"
+VALIDATOR_V9 = WORKER_ROOT / "vendor" / "validate_topic_v9.py"
+DEFAULT_CONTENT_STANDARD = os.environ.get("KH_WORKER_CONTENT_STANDARD", "v9").strip().lower() or "v9"
 
 # --- Config from env (fallback when job has no llm block) ---------------------
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
@@ -123,13 +126,20 @@ class UsageTracker:
 _CURRENT_USAGE: UsageTracker | None = None
 _CURRENT_LLM: "llm.LlmConfig | None" = None
 _CURRENT_FALLBACK: "llm.LlmConfig | None" = None
-# Admin-editable v5 rules from Laravel (job["llm"]["v5_prompt"]); None → V5_RULES.
+# Admin-editable rules from Laravel (v9_prompt / v5_prompt); None → builtin defaults.
 _CURRENT_V5_RULES: str | None = None
+_CURRENT_V9_RULES: str | None = None
+
+
+def _content_standard(job: dict) -> str:
+    llm_block = job.get("llm") if isinstance(job.get("llm"), dict) else {}
+    std = str((llm_block or {}).get("content_standard") or DEFAULT_CONTENT_STANDARD).strip().lower()
+    return std or "v9"
 
 
 def estimate_enrichment_cost() -> dict:
-    """Pre-flight estimate for admin UI (section groups + typical repair passes)."""
-    groups = 5  # keep in sync with GROUPS length below
+    """Pre-flight estimate for admin UI (passes/groups + typical repair passes)."""
+    groups = 4 if DEFAULT_CONTENT_STANDARD == "v9" else 5
     est_calls = groups + max(1, MAX_REPAIR_PASSES // 2)
     # Empirical averages from production runs (~17 min / topic).
     est_prompt = int(os.environ.get("KH_WORKER_EST_PROMPT_TOKENS", "90000") or "90000")
@@ -685,6 +695,130 @@ def _parse_validator_output(stdout: str, exit_code: int) -> dict:
     }
 
 
+def _run_v9_pipeline(
+    job_id: str,
+    topic_id: str,
+    title: str,
+    specialty: str,
+    chapter: str,
+    callback_url: str,
+    references: list[dict],
+    usage_payload,
+) -> tuple[dict, dict, bool]:
+    """Execute v9 4-pass generation, validate, repair. Returns (flat_topic, report, bypassed)."""
+
+    def on_pass(name: str, idx: int) -> None:
+        pct = 30 + int(40 * idx / 4)
+        _progress(callback_url, job_id, topic_id, f"generate:{name}", pct)
+
+    passes = v9_generation.generate_passes(
+        llm_generate=_llm_generate,
+        extract_json=_extract_json,
+        title=title,
+        topic_id=topic_id,
+        specialty=specialty,
+        chapter=chapter,
+        references=references,
+        custom_rules=_CURRENT_V9_RULES,
+        on_pass_done=on_pass,
+    )
+
+    _progress(callback_url, job_id, topic_id, "assemble", 72)
+    doc = v9_generation.merge_pass_dicts(passes)
+    doc = v9_generation.finalize_document(
+        doc,
+        topic_id=topic_id,
+        title=title,
+        specialty=specialty,
+        chapter=chapter,
+        references=references,
+    )
+
+    _progress(callback_url, job_id, topic_id, "validate", 80)
+    report = v9_generation.run_validator(doc)
+
+    repair_num = 0
+    while not report["passed"] and repair_num < MAX_REPAIR_PASSES:
+        repair_num += 1
+        _progress(callback_url, job_id, topic_id, f"repair:{repair_num}", 82 + repair_num * 4)
+        passes = v9_generation.repair_passes(
+            llm_generate=_llm_generate,
+            extract_json=_extract_json,
+            passes=passes,
+            report=report,
+            title=title,
+            topic_id=topic_id,
+            specialty=specialty,
+            chapter=chapter,
+            references=references,
+            custom_rules=_CURRENT_V9_RULES,
+            pass_num=repair_num,
+            max_passes=MAX_REPAIR_PASSES,
+            on_pass_done=on_pass,
+        )
+        doc = v9_generation.merge_pass_dicts(passes)
+        doc = v9_generation.finalize_document(
+            doc,
+            topic_id=topic_id,
+            title=title,
+            specialty=specialty,
+            chapter=chapter,
+            references=references,
+        )
+        report = v9_generation.run_validator(doc)
+
+    bypassed = False
+    if not report["passed"]:
+        if VALIDATOR_BYPASS_AFTER_REPAIRS and repair_num >= MAX_REPAIR_PASSES:
+            bypassed = True
+            err_preview = "; ".join((report.get("error_list") or [])[:5])
+            report = {
+                **report,
+                "passed": False,
+                "bypassed": True,
+                "bypass_after_repairs": repair_num,
+                "bypass_reason": (
+                    f"v9 validator still failing after {repair_num} repair pass(es) "
+                    f"({report.get('errors', 0)} error(s)); accepted for board review."
+                ),
+                "error_preview": err_preview,
+            }
+            flat = v9_generation.flatten_for_ingest(doc)
+            flat["validatorBypassed"] = True
+            flat["validatorBypassNote"] = report["bypass_reason"]
+            print(
+                f"[pipeline] job {job_id}: v9 validator bypass after {repair_num} repairs "
+                f"— {report.get('errors')} remaining error(s)",
+                file=sys.stderr,
+            )
+            return flat, report, bypassed
+        err_lines = report.get("error_list") or []
+        summary = (
+            f"{report.get('errors', 0)} v9 validator error(s) after {repair_num} repair pass(es)"
+        )
+        if err_lines:
+            summary += ": " + "; ".join(err_lines[:8])
+        _post_signed(
+            callback_url,
+            {
+                "job_id": job_id,
+                "topic_id": topic_id,
+                "status": "failed",
+                "error": summary[:4000],
+                "validator_report": report,
+                "usage": usage_payload(),
+            },
+        )
+        raise _PipelineFailed()
+
+    flat = v9_generation.flatten_for_ingest(doc)
+    return flat, report, bypassed
+
+
+class _PipelineFailed(Exception):
+    """Sentinel: failure callback already posted."""
+
+
 def _repair(title: str, specialty: str, chapter: str, references: list[dict],
             report: dict, callback_url: str, job_id: str, topic_id: str,
             pass_num: int = 1) -> dict:
@@ -721,7 +855,7 @@ def _repair(title: str, specialty: str, chapter: str, references: list[dict],
 def run_pipeline(job: dict, on_done=None) -> None:
     """Execute the full pipeline for one job dict:
     {job_id, topic_id, title, specialty, chapter, callback_url, llm?}."""
-    global _CURRENT_USAGE, _CURRENT_LLM, _CURRENT_FALLBACK, _CURRENT_V5_RULES
+    global _CURRENT_USAGE, _CURRENT_LLM, _CURRENT_FALLBACK, _CURRENT_V5_RULES, _CURRENT_V9_RULES
     job_id = job["job_id"]
     topic_id = job["topic_id"]
     title = job["title"]
@@ -729,8 +863,11 @@ def run_pipeline(job: dict, on_done=None) -> None:
     chapter = job.get("chapter", specialty)
     callback_url = job["callback_url"]
     llm_block = job.get("llm") if isinstance(job.get("llm"), dict) else {}
-    custom_rules = str((llm_block or {}).get("v5_prompt") or "").strip()
-    _CURRENT_V5_RULES = custom_rules or None
+    content_std = _content_standard(job)
+    v9_custom = str((llm_block or {}).get("v9_prompt") or "").strip()
+    v5_custom = str((llm_block or {}).get("v5_prompt") or "").strip()
+    _CURRENT_V9_RULES = v9_custom or None
+    _CURRENT_V5_RULES = v5_custom or None
     try:
         _CURRENT_LLM = llm.LlmConfig.from_job(job)
         _CURRENT_FALLBACK = llm.LlmConfig.fallback_from_job(job)
@@ -738,6 +875,7 @@ def run_pipeline(job: dict, on_done=None) -> None:
         _CURRENT_LLM = None
         _CURRENT_FALLBACK = None
         _CURRENT_V5_RULES = None
+        _CURRENT_V9_RULES = None
         _CURRENT_USAGE = UsageTracker()
         _post_signed(
             callback_url,
@@ -777,69 +915,74 @@ def run_pipeline(job: dict, on_done=None) -> None:
             return
         _progress(callback_url, job_id, topic_id, "research:done", 25)
 
-        groups = generate_groups(title, specialty, chapter, references, callback_url, job_id, topic_id)
-
-        _progress(callback_url, job_id, topic_id, "assemble", 72)
-        topic = assemble_topic(topic_id, title, specialty, chapter, references, groups)
-
-        _progress(callback_url, job_id, topic_id, "validate", 80)
-        report = run_validator(topic)
-
-        passes = 0
-        while not report["passed"] and passes < MAX_REPAIR_PASSES:
-            passes += 1
-            _progress(callback_url, job_id, topic_id, f"repair:{passes}", 82 + passes * 4)
-            groups = _repair(
-                title, specialty, chapter, references, report,
-                callback_url, job_id, topic_id, pass_num=passes,
-            )
-            topic = assemble_topic(topic_id, title, specialty, chapter, references, groups)
-            report = run_validator(topic)
-
-        # After 2–3 repair passes, if still failing: accept draft for human review
-        # rather than burning another cycle. Admin sees bypass flag + remaining errors.
         bypassed = False
-        if not report["passed"]:
-            if VALIDATOR_BYPASS_AFTER_REPAIRS and passes >= MAX_REPAIR_PASSES:
-                bypassed = True
-                err_preview = "; ".join((report.get("error_list") or [])[:5])
-                report = {
-                    **report,
-                    "passed": False,
-                    "bypassed": True,
-                    "bypass_after_repairs": passes,
-                    "bypass_reason": (
-                        f"Validator still failing after {passes} repair pass(es) "
-                        f"({report.get('errors', 0)} error(s)); accepted for board review."
-                    ),
-                    "error_preview": err_preview,
-                }
-                topic["validatorBypassed"] = True
-                topic["validatorBypassNote"] = report["bypass_reason"]
-                print(
-                    f"[pipeline] job {job_id}: validator bypass after {passes} repairs "
-                    f"— {report.get('errors')} remaining error(s)",
-                    file=sys.stderr,
+        if content_std == "v7":
+            groups = generate_groups(
+                title, specialty, chapter, references, callback_url, job_id, topic_id
+            )
+            _progress(callback_url, job_id, topic_id, "assemble", 72)
+            topic = assemble_topic(topic_id, title, specialty, chapter, references, groups)
+            _progress(callback_url, job_id, topic_id, "validate", 80)
+            report = run_validator(topic)
+            passes = 0
+            while not report["passed"] and passes < MAX_REPAIR_PASSES:
+                passes += 1
+                _progress(callback_url, job_id, topic_id, f"repair:{passes}", 82 + passes * 4)
+                groups = _repair(
+                    title, specialty, chapter, references, report,
+                    callback_url, job_id, topic_id, pass_num=passes,
                 )
-            else:
-                err_lines = report.get("error_list") or []
-                summary = (
-                    f"{report.get('errors', 0)} validator error(s) after {passes} "
-                    f"repair pass(es)"
+                topic = assemble_topic(topic_id, title, specialty, chapter, references, groups)
+                report = run_validator(topic)
+            if not report["passed"]:
+                if VALIDATOR_BYPASS_AFTER_REPAIRS and passes >= MAX_REPAIR_PASSES:
+                    bypassed = True
+                    err_preview = "; ".join((report.get("error_list") or [])[:5])
+                    report = {
+                        **report,
+                        "passed": False,
+                        "bypassed": True,
+                        "bypass_after_repairs": passes,
+                        "bypass_reason": (
+                            f"Validator still failing after {passes} repair pass(es) "
+                            f"({report.get('errors', 0)} error(s)); accepted for board review."
+                        ),
+                        "error_preview": err_preview,
+                    }
+                    topic["validatorBypassed"] = True
+                    topic["validatorBypassNote"] = report["bypass_reason"]
+                    print(
+                        f"[pipeline] job {job_id}: validator bypass after {passes} repairs "
+                        f"— {report.get('errors')} remaining error(s)",
+                        file=sys.stderr,
+                    )
+                else:
+                    err_lines = report.get("error_list") or []
+                    summary = (
+                        f"{report.get('errors', 0)} validator error(s) after {passes} "
+                        f"repair pass(es)"
+                    )
+                    if err_lines:
+                        summary += ": " + "; ".join(err_lines[:8])
+                    _post_signed(
+                        callback_url,
+                        {
+                            "job_id": job_id,
+                            "topic_id": topic_id,
+                            "status": "failed",
+                            "error": summary[:4000],
+                            "validator_report": report,
+                            "usage": usage_payload(),
+                        },
+                    )
+                    return
+        else:
+            try:
+                topic, report, bypassed = _run_v9_pipeline(
+                    job_id, topic_id, title, specialty, chapter,
+                    callback_url, references, usage_payload,
                 )
-                if err_lines:
-                    summary += ": " + "; ".join(err_lines[:8])
-                _post_signed(
-                    callback_url,
-                    {
-                        "job_id": job_id,
-                        "topic_id": topic_id,
-                        "status": "failed",
-                        "error": summary[:4000],
-                        "validator_report": report,
-                        "usage": usage_payload(),
-                    },
-                )
+            except _PipelineFailed:
                 return
 
         topic = media.attach_media(topic, job, callback_url, job_id, topic_id)
@@ -874,5 +1017,7 @@ def run_pipeline(job: dict, on_done=None) -> None:
         _CURRENT_USAGE = None
         _CURRENT_LLM = None
         _CURRENT_FALLBACK = None
+        _CURRENT_V5_RULES = None
+        _CURRENT_V9_RULES = None
         if on_done:
             on_done(job_id)

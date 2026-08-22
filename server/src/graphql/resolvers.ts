@@ -26,7 +26,7 @@ export const resolvers = {
     },
 
     async topics(_: unknown, args: TopicsArgs) {
-      const limit = Math.min(Math.max(args.limit ?? 20, 1), 100);
+      const limit = Math.min(Math.max(args.limit ?? 20, 1), 500);
       const offset = Math.max(args.offset ?? 0, 0);
       const key = `topics:${args.specialty ?? ''}:${args.chapter ?? ''}:${args.tier ?? ''}:${args.careSetting ?? ''}:${args.status ?? ''}:${args.search ?? ''}:${limit}:${offset}`;
       return cached(key, () =>
