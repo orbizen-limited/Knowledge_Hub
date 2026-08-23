@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -19,6 +20,32 @@ V9_MEDIA_MODE = os.environ.get("KH_WORKER_V9_MEDIA_MODE", "QUERY-ONLY").strip() 
 V9_REFERENCE_MODE = os.environ.get("KH_WORKER_V9_REFERENCE_MODE", "R-STRICT").strip() or "R-STRICT"
 
 _PROMPT_CACHE: str | None = None
+
+# Condensed worker rules — the full knowledge_hub_prompt_v9.md (~50k chars) is kept
+# in vendor/ for admin override (llm.v9_prompt) but must NOT be sent on every pass;
+# that blew Gemini context limits and caused HTTP 400 failures.
+V9_WORKER_CONDENSED = """\
+You are the Senior Clinical Editorial Physician for DoctorsHero RX Clinical Knowledge Hub
+(Bangladesh EMR). Author to contentStandard "v9".
+
+OUTPUT DISCIPLINE (absolute):
+- Emit one JSON object only. First char { last char }. No markdown fences. No commentary.
+- ASCII punctuation only in JSON strings (plain hyphen-minus, straight quotes).
+- Never emit treatmentLines or treatment — all therapy lives in managementSections.
+- Cite ONLY supplied refIds as inline [N]. Never invent DOIs or refIds.
+- If a density floor cannot be met honestly, record it in _selfAudit.failedFloors[] —
+  never pad with filler prose or fake citations.
+
+V9 SHAPE:
+- MULTI-PASS: emit only this pass's keys plus _merge metadata.
+- managementSections: >=7 ContentBlocks in canonical order across passes 2-3.
+- drugRegimens: >=6 entries each with full doseSpec object.
+- media (pass 4): QUERY-ONLY — proposedUrl null, use searchDirectives.
+- crossLinks: [] (worker cannot resolve corpus).
+- references: injected by pipeline in pass 4 — do NOT invent references.
+
+DENSITY: points >=200 chars with >=1 numeric where clinical; decision-dense prose.
+"""
 
 V9_PASSES = [
     {
@@ -149,7 +176,7 @@ def build_pass_prompt(
         "MEDIA_MODE": V9_MEDIA_MODE,
         "MIN_JSON_CHARS": str(V9_MIN_CHARS),
     }
-    base = custom_rules.strip() if custom_rules and custom_rules.strip() else _load_prompt_template()
+    base = custom_rules.strip() if custom_rules and custom_rules.strip() else V9_WORKER_CONDENSED
     base = _substitute_variables(base, variables)
     return (
         f"{base}\n\n"

@@ -246,6 +246,14 @@ def _gemini(prompt: str, cfg: LlmConfig, tracker, retries: int) -> str:
                 time.sleep(delay)
                 delay = min(delay * 2, 60)
                 continue
+            if resp.status_code >= 400:
+                body = resp.text[:800] if resp.text else ""
+                last_err = f"HTTP {resp.status_code}: {body}"
+                if resp.status_code in (400, 401, 403, 404):
+                    raise RuntimeError(f"Gemini generation failed: {last_err}")
+                time.sleep(delay)
+                delay = min(delay * 2, 60)
+                continue
             resp.raise_for_status()
             data = resp.json()
             meta = data.get("usageMetadata") or {}
