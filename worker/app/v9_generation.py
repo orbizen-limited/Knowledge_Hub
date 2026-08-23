@@ -65,7 +65,8 @@ V9_PASSES = [
             "clinicalDecisionRules, redFlags, pointOfCareFlow.\n"
             "topicMetadata must set contentStandard to v9, locale BD, status needs-review.\n"
             "All prose fields are dense strings with inline [N] citations. "
-            "diagnosisSections use ContentBlock {heading, content:[{text,level}]}.\n"
+            "diagnosisSections use ContentBlock {heading, content:[{text,level}]} — "
+            "NOT 'points'. Each content item MUST be an object with string text and int level.\n"
             "Do NOT emit references, media, managementSections, or _selfAudit in this pass."
         ),
     },
@@ -77,6 +78,8 @@ V9_PASSES = [
             "MULTI-PASS Pass 2/4. Emit ONLY managementSections blocks 1-4 (first four "
             "canonical blocks in order) and drugRegimens (>=6 complete entries with doseSpec). "
             "Wrap clinical keys under top-level 'topic'. Include _merge metadata.\n"
+            "managementSections blocks MUST use {heading, content:[{text,level}]} — never "
+            "bare strings in content, never a 'points' key.\n"
             "No treatmentLines. Fold all line-of-therapy detail into managementSections.\n"
             "Do NOT restate Pass 1 content. Do NOT emit blocks 5-7 yet."
         ),
@@ -94,6 +97,8 @@ V9_PASSES = [
             "7-block canonical order started in Pass 2) plus preciseDosing, "
             "drugInteractionFlags, comorbidityManagement, complicationManagement, "
             "prognosisQuantitative, monitoring, doNotDo, qualityMeasures.\n"
+            "managementSections blocks MUST use {heading, content:[{text,level}]} — never "
+            "bare strings in content, never a 'points' key.\n"
             "Wrap under top-level 'topic'. Include _merge metadata.\n"
             "Do NOT restate Pass 1-2 content."
         ),
@@ -262,37 +267,41 @@ def generate_passes(
 
 
 def merge_pass_files(pass_paths: list[str]) -> dict:
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as out_fh:
-        merged_path = out_fh.name
-    try:
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(VALIDATOR_V9),
-                "--merge",
-                *pass_paths,
-                "-o",
-                merged_path,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"v9 merge failed (exit {proc.returncode}): {proc.stderr or proc.stdout}"
-            )
-        with open(merged_path, encoding="utf-8") as fh:
-            return json.load(fh)
-    finally:
-        try:
-            os.unlink(merged_path)
-        except OSError:
-            pass
+    """Deep-merge multi-pass JSON files in-process.
+
+    IMPORTANT: do NOT call validate_topic_v9.py --merge for this.
+    That CLI always validates after merge and exits 1 on content errors,
+    which incorrectly aborted the pipeline at assemble (72%) before repair.
+    Validation happens later via run_validator().
+    """
+    merged: dict[str, Any] = {}
+    for path in pass_paths:
+        with open(path, encoding="utf-8") as fh:
+            obj = json.load(fh)
+        if not isinstance(obj, dict):
+            raise RuntimeError(f"v9 merge: pass file is not an object: {path}")
+        obj.pop("_merge", None)
+        # Pass may emit topic keys bare or nested under "topic".
+        if "topic" not in obj and "media" not in obj:
+            obj = {"topic": obj}
+        _deep_merge(merged, obj)
+    return merged
+
+
+def _deep_merge(base: dict, incoming: dict) -> dict:
+    for k, v in incoming.items():
+        if k not in base:
+            base[k] = v
+        elif isinstance(base[k], dict) and isinstance(v, dict):
+            _deep_merge(base[k], v)
+        elif isinstance(base[k], list) and isinstance(v, list):
+            base[k].extend(v)
+        # scalar conflict: keep earlier value (matches validator merge rule)
+    return base
 
 
 def merge_pass_dicts(passes: dict[int, dict]) -> dict:
-    """Write pass dicts to temp files and invoke validator --merge."""
+    """Write pass dicts to temp files and deep-merge (no validation)."""
     paths: list[str] = []
     try:
         for idx in sorted(passes):
@@ -309,6 +318,52 @@ def merge_pass_dicts(passes: dict[int, dict]) -> dict:
                 os.unlink(p)
             except OSError:
                 pass
+
+
+def _normalize_content_blocks(blocks: Any) -> list:
+    """Coerce legacy/v7 ContentBlock shapes into v9 {heading, content:[{text,level}]}."""
+    if not isinstance(blocks, list):
+        return []
+    out: list[dict] = []
+    for block in blocks:
+        if not isinstance(block, dict):
+            continue
+        heading = block.get("heading") or block.get("title") or ""
+        raw = block.get("content")
+        if raw is None:
+            raw = block.get("points") or block.get("bullets") or []
+        if not isinstance(raw, list):
+            raw = [raw] if raw else []
+        content: list[dict] = []
+        for item in raw:
+            if isinstance(item, str):
+                t = item.strip()
+                if t:
+                    content.append({"text": t, "level": 0})
+            elif isinstance(item, dict):
+                text = item.get("text") or item.get("point") or item.get("detail") or ""
+                if not isinstance(text, str):
+                    text = str(text) if text is not None else ""
+                text = text.strip()
+                if not text:
+                    continue
+                level = item.get("level", 0)
+                try:
+                    level = int(level)
+                except (TypeError, ValueError):
+                    level = 0
+                content.append({"text": text, "level": level})
+        out.append({"heading": str(heading), "content": content})
+    return out
+
+
+def normalize_v9_shapes(doc: dict) -> dict:
+    """Fix common LLM shape drift so repair isn't flooded with V9_POINT_SHAPE."""
+    topic = doc.get("topic") if isinstance(doc.get("topic"), dict) else doc
+    for key in ("managementSections", "diagnosisSections"):
+        if key in topic:
+            topic[key] = _normalize_content_blocks(topic.get(key))
+    return doc
 
 
 def finalize_document(
@@ -368,6 +423,8 @@ def finalize_document(
     topic["crossReferences"] = []
     topic["relatedTopicIds"] = []
     topic.pop("treatmentLines", None)
+
+    normalize_v9_shapes(doc)
 
     if V9_MEDIA_MODE == "QUERY-ONLY":
         cleaned_media: list[dict] = []
