@@ -260,7 +260,17 @@ def generate_passes(
             repair_note=repair_note,
         )
         raw = llm_generate(prompt)
-        out[idx] = extract_json(raw)
+        try:
+            out[idx] = extract_json(raw)
+        except (ValueError, json.JSONDecodeError) as first_exc:
+            # One automatic retry — models occasionally emit double JSON / fences.
+            raw2 = llm_generate(
+                prompt
+                + "\n\nCRITICAL: Previous response was not valid single JSON "
+                f"({first_exc}). Emit EXACTLY one JSON object. No second object, "
+                "no markdown, no commentary."
+            )
+            out[idx] = extract_json(raw2)
         if on_pass_done:
             on_pass_done(pdef["name"], idx)
     return out

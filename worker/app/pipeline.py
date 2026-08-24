@@ -565,17 +565,36 @@ def _build_prompt(group: dict, title: str, specialty: str, chapter: str,
 
 
 def _extract_json(text: str) -> dict:
-    text = text.strip()
+    """Parse the first complete JSON object from an LLM response.
+
+    Models often emit `{...}{...}` or `{...}\\n{...}` (or prose after JSON).
+    Taking first `{` through last `}` then json.loads() raises Extra data —
+    use raw_decode so we only consume the first object.
+    """
+    text = (text or "").strip()
     if text.startswith("```"):
         text = text.strip("`")
         if text.lower().startswith("json"):
-            text = text[4:]
-    # find first { and last }
+            text = text[4:].lstrip()
+        # Drop trailing fence if present
+        if text.endswith("```"):
+            text = text[:-3].rstrip()
+
     start = text.find("{")
-    end = text.rfind("}")
-    if start != -1 and end != -1:
-        text = text[start : end + 1]
-    return json.loads(text)
+    if start == -1:
+        raise ValueError(f"LLM response has no JSON object (len={len(text)})")
+
+    decoder = json.JSONDecoder()
+    try:
+        obj, _end = decoder.raw_decode(text, start)
+    except json.JSONDecodeError as exc:
+        # Truncated / broken JSON — surface a short preview for logs
+        preview = text[start : start + 240].replace("\n", " ")
+        raise ValueError(f"LLM JSON parse failed: {exc}; preview={preview!r}") from exc
+
+    if not isinstance(obj, dict):
+        raise ValueError(f"LLM JSON root must be an object, got {type(obj).__name__}")
+    return obj
 
 
 def generate_groups(title: str, specialty: str, chapter: str, references: list[dict],
