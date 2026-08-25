@@ -451,20 +451,10 @@ def finalize_document(
 
 
 def flatten_for_ingest(doc: dict) -> dict:
-    """Flatten {topic, media, _selfAudit} for Laravel/GraphQL normalizeTopic."""
-    inner = doc.get("topic") if isinstance(doc.get("topic"), dict) else {}
-    flat = dict(inner)
-    if isinstance(doc.get("media"), list):
-        flat["media"] = doc["media"]
-    if doc.get("_selfAudit") is not None:
-        flat["_selfAudit"] = doc["_selfAudit"]
-    meta = flat.get("topicMetadata")
-    if isinstance(meta, dict):
-        flat.setdefault("topicId", meta.get("topicId"))
-        flat.setdefault("title", meta.get("topicName"))
-        flat.setdefault("specialty", meta.get("specialty"))
-        flat.setdefault("contentStandard", meta.get("contentStandard"))
-    return flat
+    """Flatten {topic, media, _selfAudit} and map v9 keys → legacy DoctorsHero fields."""
+    from . import v9_to_legacy
+
+    return v9_to_legacy.map_v9_document_for_ingest(doc)
 
 
 def run_validator(doc: dict) -> dict:

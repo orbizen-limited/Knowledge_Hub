@@ -104,7 +104,8 @@ function walkPoints(raw: Json, level: number, out: ContentPoint[]): void {
 
 function blockFromJson(json: Record<string, Json>): ContentBlock {
   const points: ContentPoint[] = [];
-  walkPoints(json.points ?? json.bullets ?? json.items ?? [], 0, points);
+  // v9 uses `content:[{text,level}]`; legacy uses `points` / bullets / items.
+  walkPoints(json.points ?? json.content ?? json.bullets ?? json.items ?? [], 0, points);
   return { heading: stringOr(json.heading ?? json.title, ''), points };
 }
 
@@ -276,13 +277,18 @@ export function normalizeTopic(json: Record<string, Json>): NormalizedTopic {
         year: intOr(r.year, 0),
         doi: stringOr(r.doi, ''),
       })),
-      etiologyEpidemiology: stringList(json.etiologyEpidemiology),
-      clinicalPresentation: stringList(json.clinicalPresentation),
+      // v9 aliases: etiology / presentation / workup / monitoring
+      etiologyEpidemiology: stringList(
+        json.etiologyEpidemiology ?? json.etiology,
+      ),
+      clinicalPresentation: stringList(
+        json.clinicalPresentation ?? json.presentation,
+      ),
       differentialDiagnosis: mapList(json.differentialDiagnosis).map((d) => ({
         condition: stringOr(d.condition, ''),
         distinguishingFeature: stringOr(d.distinguishingFeature, ''),
       })),
-      diagnosticWorkup: stringList(json.diagnosticWorkup),
+      diagnosticWorkup: stringList(json.diagnosticWorkup ?? json.workup),
       treatmentLines: mapList(json.treatmentLines).map((t) => ({
         line: stringOr(t.line, ''),
         description: stringOr(t.description, ''),
@@ -292,7 +298,9 @@ export function normalizeTopic(json: Record<string, Json>): NormalizedTopic {
         population: stringOr(s.population, ''),
         guidance: stringOr(s.guidance ?? s.considerations ?? s.notes, ''),
       })),
-      monitoringFollowUp: stringList(json.monitoringFollowUp),
+      monitoringFollowUp: stringList(
+        json.monitoringFollowUp ?? json.monitoring,
+      ),
       complicationsPrognosis: stringList(json.complicationsPrognosis),
       pathophysiology: stringList(json.pathophysiology),
       comorbidityManagement: mapList(json.comorbidityManagement).map((e) => ({
@@ -317,7 +325,38 @@ export function normalizeTopic(json: Record<string, Json>): NormalizedTopic {
         doseSpec: normalizeDoseSpec(d.doseSpec),
       })),
       relapseRemission: stringList(json.relapseRemission),
-      patientEducation: stringList(json.patientEducation),
+      patientEducation: (() => {
+        const direct = stringList(json.patientEducation);
+        if (direct.length) return direct;
+        // v9 patientEducationBundle → flat counseling strings
+        const bundle = isPlainObject(json.patientEducationBundle)
+          ? json.patientEducationBundle
+          : null;
+        if (!bundle) return [];
+        const out: string[] = [];
+        for (const key of [
+          'plainLanguageSummary',
+          'banglaSummary',
+          'localeAdaptationNotes',
+        ] as const) {
+          out.push(...stringList(bundle[key]));
+        }
+        for (const key of [
+          'sickDayRules',
+          'whenToSeekHelp',
+          'adherenceStrategies',
+        ] as const) {
+          out.push(...stringList(bundle[key]));
+        }
+        for (const faq of mapList(bundle.faq)) {
+          const q = stringOr(faq.question, '');
+          const a = stringOr(faq.answer, '');
+          if (q && a) out.push(`Q: ${q} A: ${a}`);
+          else if (a) out.push(a);
+          else if (q) out.push(q);
+        }
+        return out.filter((s) => s.trim().length > 0);
+      })(),
       crossReferences: stringList(json.crossReferences),
       backgroundInformation: parseContentBlocks(json.backgroundInformation, 'Background'),
       diagnosisSections: parseContentBlocks(json.diagnosisSections, 'Diagnosis'),
